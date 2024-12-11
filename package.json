@@ -1,0 +1,15 @@
+{
+  "name": "fulcro-simple",
+  "version": "0.0.1",
+  "private": true,
+  "devDependencies": {
+    "shadow-cljs": "2.28.14"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "tailwind": "^4.0.0"
+  },
+  "scripts": {"dev:css": "bun x tailwindcss -i ./resources/input.css -o ./resources/public/output.css -w",
+              "release:css": "bun x tailwindcss -i ./resources/input.css -o ./resources/public/output.css -m"}
+}

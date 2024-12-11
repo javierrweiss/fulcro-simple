@@ -1,0 +1,20 @@
+;; shadow-cljs configuration
+{:source-paths
+ ["dev"
+  "src/main"
+  "src/test"]
+
+ :nrepl {:port 9000}
+ 
+ :deps {:aliases [:dev]}
+
+ :dependencies
+ []
+
+ :builds {:main {:target :browser
+                 :output-dir "resources/public/js/main"
+                 :asset-path "/js/main"
+                 :modules {:main {:init-fn main.frontend.client/init}}
+                 :devtools {:after-load main.frontend.client/refrescar
+                            :preloads [com.fulcrologic.fulcro.inspect.preload
+                                       com.fulcrologic.fulcro.inspect.dom-picker-preload]}}}}

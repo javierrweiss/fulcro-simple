@@ -1,0 +1,177 @@
+(ns main.frontend.seleccion-pacientes
+  (:require [com.fulcrologic.fulcro.components :as comp :refer [defsc]]
+            [com.fulcrologic.fulcro.data-fetch :as df]
+            [com.fulcrologic.fulcro.routing.dynamic-routing :as dr :refer [defrouter]] 
+            [main.frontend.formulariocarga :as formulariocarga]
+            [main.modelo.paciente :as paciente]
+            [com.fulcrologic.fulcro.dom :as dom :refer [form
+                                                        button
+                                                        div
+                                                        h1 h2 h3 h4 h5
+                                                        nav
+                                                        main
+                                                        section
+                                                        article
+                                                        header
+                                                        p
+                                                        input
+                                                        img
+                                                        ul ol li
+                                                        label
+                                                        span
+                                                        table tbody tr th td]]
+            [clojure.string :as string]))
+
+(defn loading [current-load component-to-show] 
+  (cond 
+    (df/loading? current-load) (p "Cargando...")
+    (df/failed? current-load) (p "¡Lo sentimos! ¡Hubo un problema al cargar los datos!")
+    :else component-to-show))
+
+(defn gatillar-transicion-formulario-carga
+  [comp-ref patient-map patient-id]
+  (comp/transact! comp-ref [(paciente/selecciona-paciente patient-map)] {:parallel? true})
+  (df/load! comp-ref :todas-las-patologias nil {:target [:component/id ::formulariocarga/FormularioCarga :patologias]}) 
+  (dr/change-route! comp-ref (dr/path-to formulariocarga/FormularioCarga patient-id)))
+
+(defsc PacienteAmbulatorio [this {:tbc_guardia/keys [id
+                                                     guar_apenom
+                                                     guar_histclinica
+                                                     guar_estado 
+                                                     guar_fechaingreso
+                                                     guar_horaingreso]
+                                  :keys [intervencion] :as props}]
+  {:use-hooks? true
+   :route-segment ["lista_pacientes"]
+   :ident :tbc_guardia/id
+   :query [:tbc_guardia/id
+           :tbc_guardia/guar_apenom
+           :tbc_guardia/guar_histclinica
+           :tbc_guardia/guar_estado 
+           :intervencion 
+           :tbc_guardia/guar_fechaingreso
+           :tbc_guardia/guar_horaingreso]} 
+  (when props
+    (tr {:onClick #(gatillar-transicion-formulario-carga
+                    this
+                    {:id id
+                     :nombre guar_apenom
+                     :hc guar_histclinica
+                     :hcu 0
+                     :sexo "Desconocido"
+                     :edad 0}
+                    id)
+         :classes ["border-2" 
+                   "border-cyan-900" 
+                   "odd:bg-cyan-300" 
+                   "even:bg-cyan-400" 
+                   "hover:bg-cyan-700"
+                   "text-center"]}
+        (td guar_histclinica)
+        (td guar_apenom)
+        (td guar_estado)
+        (td (string/trim intervencion))
+        (td guar_fechaingreso)
+        (td guar_horaingreso))))
+
+(def ui-paciente-ambulatorio (comp/factory PacienteAmbulatorio {:keyfn :tbc_guardia/id}))
+
+(defsc PacienteInternado [this {:keys [tbc_admision_scroll/id
+                                       tbc_admision_scroll/adm_histclin
+                                       tbc_admision_scroll/adm_histclinuni
+                                       tbc_admision_scroll/adm_apelnom
+                                       tbc_admision_scroll/adm_habita
+                                       tbc_admision_scroll/adm_cama
+                                       tbc_admision_scroll/adm_fecing
+                                       tbc_admision_scroll/adm_horing] :as props}]
+  {:use-hooks? true
+   :route-segment ["lista_pacientes"]
+   :query [:tbc_admision_scroll/id
+           :tbc_admision_scroll/adm_histclin
+           :tbc_admision_scroll/adm_histclinuni
+           :tbc_admision_scroll/adm_apelnom
+           :tbc_admision_scroll/adm_habita
+           :tbc_admision_scroll/adm_cama
+           :tbc_admision_scroll/adm_fecing
+           :tbc_admision_scroll/adm_horing]
+   :ident :tbc_admision_scroll/id}
+  (when props
+    (tr {:onClick #(gatillar-transicion-formulario-carga
+                    this
+                    {:id id
+                     :nombre adm_apelnom
+                     :hc adm_histclinuni
+                     :hcu 0
+                     :sexo "Desconocido"
+                     :edad 0}
+                    id)
+         :classes ["border-2" 
+                   "border-cyan-900" 
+                   "odd:bg-cyan-300" 
+                   "even:bg-cyan-400" 
+                   "hover:bg-cyan-700"
+                   "text-center"]}
+        (td adm_histclin)
+        (td adm_histclinuni)
+        (td adm_apelnom)
+        (td adm_habita)
+        (td adm_cama)
+        (td adm_fecing)
+        (td adm_horing))))
+
+(def ui-paciente-internado (comp/factory PacienteInternado {:keyfn :tbc_admision_scroll/id}))
+
+
+(defsc PacienteTable [_ {:keys [pacientes-ambulatorios pacientes-internados ui/tipo-paciente] :as props}]
+  {:use-hooks? true
+   :query  [{:pacientes-ambulatorios (comp/get-query PacienteAmbulatorio)}
+            {:pacientes-internados (comp/get-query PacienteInternado)}
+            :ui/carga-paciente [df/marker-table :carga-paciente]
+            :ui/tipo-paciente]
+   :initial-state {:pacientes-ambulatorios {}
+                   :pacientes-internados {}}}
+  (let [current-load (get props [df/marker-table :paciente])] 
+    (if (= tipo-paciente :ambulatorio)
+      (loading current-load (table :.table-auto.border-2.border-cyan-900.m-4.p-4
+                             (tbody
+                              (tr :.bg-cyan-200 (th "Historia Clínica") (th "Nombre") (th "Estado") (th "Diagnóstico") (th "Fecha ingreso") (th "Hora ingreso"))
+                              (map ui-paciente-ambulatorio pacientes-ambulatorios))))
+      (loading current-load (table :.table-auto.border.border-cyan-900.m-4.p-4
+                             (tbody
+                              (tr :.bg-cyan-200 (th "Historia Clínica") (th "Historia Clínica Única") (th "Nombre") (th "Habitación") (th "Cama") (th "Fecha ingreso") (th "Hora ingreso"))
+                              (map ui-paciente-internado pacientes-internados)))))))
+
+(def ui-pacientetable (comp/factory PacienteTable))
+
+(defsc PacienteList [this {:keys [todos-los-pacientes ui/tipo-paciente] :as props}]
+  {:use-hooks? true
+   :query  [{:todos-los-pacientes (comp/get-query PacienteTable)}
+            :ui/carga-paciente 
+            [df/marker-table :carga-paciente]
+            :ui/tipo-paciente]
+   :initial-state {:todos-los-pacientes {}
+                   :ui/tipo-paciente :ambulatorio}
+   :ident (fn [_] [:component/id :PacienteList])
+   :route-segment ["lista_pacientes"]}
+  (div :.p-4.box-border.w-full
+   (h2 :.text-center.text-3xl.font-black.p-2 "Selección de Paciente")
+   (button :.border-solid.border-2.border-stone-300.ring-4.rounded.m-4.p-3 
+           {:onClick #(comp/transact! this [(paciente/toggle-tipo-paciente props)])}
+           (str "Ver lista de pacientes " (if (= tipo-paciente :ambulatorio) "internados" "ambulatorios")))
+   (let [datos (first todos-los-pacientes)] 
+     (ui-pacientetable {:pacientes-ambulatorios (:pacientes-ambulatorios datos)
+                        :pacientes-internados (:pacientes-internados datos)
+                        :ui/tipo-paciente tipo-paciente}))))
+
+
+(comment
+  
+  (comp/get-query PacienteList)
+  (comp/get-query PacienteAmbulatorio)
+
+
+  (let [etiqueta "Diagnóstico operatorio"]
+    (-> etiqueta (string/replace #"(?i)\W+" "_") string/lower-case))
+  
+  
+  ) 

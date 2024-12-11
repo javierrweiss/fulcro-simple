@@ -1,0 +1,14 @@
+{:asistencial {:dbtype "relativity"
+               :dbname "asistencialsc9"
+               :user "ADMIN"
+               :password ""
+               :classname "relativity.jdbc.Driver"
+               :host "10.200.0.30"
+               :port 1583}
+ :maestros {:dbtype "relativity"
+            :dbname "Maestrossc9"
+            :user "ADMIN"
+            :password ""
+            :classname "relativity.jdbc.Driver"
+            :host "10.200.0.30"
+            :port 1583}}
