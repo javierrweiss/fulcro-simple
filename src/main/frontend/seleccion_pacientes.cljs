@@ -83,7 +83,10 @@
                                        tbc_admision_scroll/adm_habita
                                        tbc_admision_scroll/adm_cama
                                        tbc_admision_scroll/adm_fecing
-                                       tbc_admision_scroll/adm_horing] :as props}]
+                                       tbc_admision_scroll/adm_horing
+                                       tbc_admision_scroll/adm_sexo
+                                       tbc_admision_scroll/adm_obrsoc
+                                       tbc_admision_scroll/adm_fecnac] :as props}]
   {:use-hooks? true
    :route-segment ["lista_pacientes"]
    :query [:tbc_admision_scroll/id
@@ -93,17 +96,21 @@
            :tbc_admision_scroll/adm_habita
            :tbc_admision_scroll/adm_cama
            :tbc_admision_scroll/adm_fecing
-           :tbc_admision_scroll/adm_horing]
+           :tbc_admision_scroll/adm_horing
+           :tbc_admision_scroll/adm_sexo
+           :tbc_admision_scroll/adm_obrsoc
+           :tbc_admision_scroll/adm_fecnac]
    :ident :tbc_admision_scroll/id}
   (when props
     (tr {:onClick #(gatillar-transicion-formulario-carga
                     this
                     {:id id
                      :nombre adm_apelnom
-                     :hc adm_histclinuni
-                     :hcu 0
-                     :sexo "Desconocido"
-                     :edad 0}
+                     :hc adm_histclin
+                     :hcu adm_histclinuni
+                     :obra_social adm_obrsoc
+                     :sexo adm_sexo
+                     :edad adm_fecnac}
                     id)
          :classes ["border-2" 
                    "border-cyan-900" 

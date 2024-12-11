@@ -24,7 +24,8 @@
             [com.fulcrologic.fulcro.routing.dynamic-routing :as dr]
             [com.fulcrologic.fulcro.mutations :as m]
             [main.frontend.generic-components :refer [ui-renglon ui-opcion ui-renglon-seleccion]]
-            [clojure.string :as string]))
+            [clojure.string :as string]
+            [main.frontend.utils.utils :as u]))
 
 (defsc Cabecera [this {}]
   {}
@@ -38,17 +39,19 @@
 
 (def ui-cabecera (comp/factory Cabecera))
 
-(defsc DatosPaciente [this {:keys [id nombre hc hcu sexo edad] :as props}]
-  {:query [:id :nombre :hc :hcu :sexo :edad]
+(defsc DatosPaciente [this {:keys [id nombre hc hcu sexo edad obra_social] :as props}]
+  {:query [:id :nombre :hc :hcu :sexo :edad :obra_social]
    :initial-state (fn [params]
                     {:id (:id params)
                      :nombre (:nombre params)
                      :hc (:hc params)
                      :hcu (:hcu params)
                      :sexo (:sexo params)
-                     :edad (:edad params)})
+                     :edad (:edad params)
+                     :obra_social (:obra_social params)})
    :ident :id}
-  #_(print (str "Propiedades en DatosPaciente: " props))
+  (print (str "Propiedades en DatosPaciente: " props))
+  (print (type edad))
   (div :#datospaciente
        (div
         (div
@@ -56,7 +59,7 @@
          (span nombre))
         (div
          (label "Obra social")
-         (span ""))
+         (span obra_social))
         (div
          (label "Historia Clínica")
          (span hc))
@@ -68,7 +71,7 @@
          (span sexo))
         (div
          (label "Edad")
-         (span edad))
+         (span (u/obtener-edad edad)))
         (div
          (label "Fecha de inicio")
          (span (js/Date))))))
