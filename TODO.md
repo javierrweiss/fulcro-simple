@@ -9,3 +9,5 @@
 4. Corregir el datasource de los select de operacion realizada y operacion propuesta
 
 5. Corregir cada select (diagnostico, diagnostico operatorio, operacion propuesta y operacion realizada) para que el valor sea el código (que tendremos que persistir) y se muestre la descripción.
+
+6. No está funcionando el marcador de carga en la lista de pacientes 

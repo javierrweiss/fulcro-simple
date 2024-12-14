@@ -34,21 +34,26 @@
   (df/load! comp-ref :todas-las-patologias nil {:target [:component/id ::formulariocarga/FormularioCarga :patologias]}) 
   (dr/change-route! comp-ref (dr/path-to formulariocarga/FormularioCarga patient-id)))
 
-(defsc PacienteAmbulatorio [this {:tbc_guardia/keys [id
-                                                     guar_apenom
-                                                     guar_histclinica
-                                                     guar_estado 
-                                                     guar_fechaingreso
-                                                     guar_horaingreso]
-                                  :keys [intervencion] :as props}]
+(defsc PacienteAmbulatorio [this {:keys [tbc_guardia/id 
+                                         tbc_guardia/guar_apenom 
+                                         tbc_guardia/guar_histclinica 
+                                         tbc_guardia/guar_estado 
+                                         tbc_guardia/guar_fechaingreso 
+                                         tbc_guardia/guar_horaingreso
+                                         intervencion]
+                                  {:keys [obra tbc_hist_cab_new/histcabsexo tbc_hist_cab_new/histcabfechanac]} :paciente-ambulatorio-histcab
+                                  :as props}]
   {:use-hooks? true
    :route-segment ["lista_pacientes"]
    :ident :tbc_guardia/id
    :query [:tbc_guardia/id
            :tbc_guardia/guar_apenom
            :tbc_guardia/guar_histclinica
-           :tbc_guardia/guar_estado 
-           :intervencion 
+           :tbc_guardia/guar_estado
+           :intervencion
+           {:paciente-ambulatorio-histcab [:obra
+                                           :tbc_hist_cab_new/histcabsexo
+                                           :tbc_hist_cab_new/histcabfechanac]}
            :tbc_guardia/guar_fechaingreso
            :tbc_guardia/guar_horaingreso]} 
   (when props
@@ -56,15 +61,16 @@
                     this
                     {:id id
                      :nombre guar_apenom
-                     :hc guar_histclinica
-                     :hcu 0
-                     :sexo "Desconocido"
-                     :edad 0}
+                     :obra_social obra
+                     :hc 0
+                     :hcu guar_histclinica
+                     :sexo histcabsexo
+                     :edad histcabfechanac}
                     id)
-         :classes ["border-2" 
-                   "border-cyan-900" 
-                   "odd:bg-cyan-300" 
-                   "even:bg-cyan-400" 
+         :classes ["border-2"
+                   "border-cyan-900"
+                   "odd:bg-cyan-300"
+                   "even:bg-cyan-400"
                    "hover:bg-cyan-700"
                    "text-center"]}
         (td guar_histclinica)

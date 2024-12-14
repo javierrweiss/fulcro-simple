@@ -57,11 +57,49 @@
   {:todos-los-pacientes [(pacientes-internados nil nil)
                          (pacientes-ambulatorios nil nil)]})
 
+(pco/defresolver obtener-pacientes-ambulatorios-histcab
+  [_ _]
+  {::pco/output [{:pacientes-ambulatorios-histcab [:tbc_hist_cab_new/histcabnrounico
+                                                   :tbc_hist_cab_new/histcabobra
+                                                   :tbc_hist_cab_new/histcabsexo
+                                                   :tbc_hist_cab_new/histcabfechanac
+                                                   :tbc_hist_cab_new/histcabtipodoc
+                                                   :tbc_hist_cab_new/histcabnrodoc
+                                                   :tbc_hist_cab_new/histcabfecaten
+                                                   :tbc_hist_cab_new/histcabplanx
+                                                   :tbc_hist_cab_new/histcabapellnom
+                                                   :tbc_hist_cab_new/histcabnrobenef]}]}
+  (when-not (:asistencial @conexiones) (conectar-asistencial))
+  {:pacientes-ambulatorios-histcab (c/carga-ambulatorios (:asistencial @conexiones))})
 
-(def resolvers [pacientes-internados pacientes-ambulatorios todos-los-pacientes])
+(pco/defresolver obtener-paciente-ambulatorio-histcab-por-hc
+  [_ {:tbc_hist_cab_new/keys [histcabnrounico]}]
+  {::pco/input [:tbc_hist_cab_new/histcabnrounico]
+   ::pco/output [{:paciente-ambulatorio-histcab [:tbc_hist_cab_new/histcabnrounico
+                                                 :tbc_hist_cab_new/histcabobra
+                                                 :tbc_hist_cab_new/histcabsexo
+                                                 :tbc_hist_cab_new/histcabfechanac
+                                                 :tbc_hist_cab_new/histcabtipodoc
+                                                 :tbc_hist_cab_new/histcabnrodoc
+                                                 :tbc_hist_cab_new/histcabfecaten
+                                                 :tbc_hist_cab_new/histcabplanx
+                                                 :tbc_hist_cab_new/histcabapellnom
+                                                 :tbc_hist_cab_new/histcabnrobenef]}]}
+  (when-not (:asistencial @conexiones) (conectar-asistencial))
+  {:paciente-ambulatorio-histcab (c/carga-ambulatorios-por-hc (:asistencial @conexiones) {:histcabnrounico histcabnrounico})})
+ 
+(def resolvers [pacientes-internados 
+                pacientes-ambulatorios 
+                todos-los-pacientes 
+                obtener-pacientes-ambulatorios-histcab
+                obtener-paciente-ambulatorio-histcab-por-hc])
 
 (comment
   (c/carga-internados-por-nombre (:asistencial @conexiones) {:nombre "BLANCO"})
   (c/carga-guardia (:asistencial @conexiones))
  (todos-los-pacientes nil nil)
-  )
+  (obtener-pacientes-ambulatorios-histcab nil nil)
+  (obtener-paciente-ambulatorio-histcab-por-hc nil {:tbc_hist_cab_new/histcabnrounico 28})
+  (c/carga-ambulatorios-por-hc (:asistencial @conexiones) {:histcabnrounico 28})
+  
+  :rcf) 

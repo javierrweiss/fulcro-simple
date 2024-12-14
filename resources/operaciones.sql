@@ -28,3 +28,21 @@ FROM tbc_interven
 SELECT itv_descripcion
 FROM tbc_interven
 WHERE itv_codi = :itv_codi
+
+-- :name carga-ambulatorios :? :*
+SELECT HistCabNroUnico, HistCabSexo, HistCabFechaNac, HistCabTipoDoc, HistCabNroDoc, HistCabFecAten, HistCabObra, HistCabPlanX, HistCabApellNom, HistCabNroBenef
+FROM tbc_hist_cab_new
+
+-- :name carga-ambulatorios-por-hc :? :1
+SELECT HistCabSexo, HistCabFechaNac, HistCabTipoDoc, HistCabNroDoc, HistCabFecAten, HistCabObra, HistCabPlanX, HistCabApellNom, HistCabNroBenef
+FROM tbc_hist_cab_new
+WHERE HistCabNroUnico = :histcabnrounico
+
+-- :name obtener-obras :? :*
+SELECT obr_codigo, obr_razonsoc
+FROM tbc_obras
+
+-- :name obtener-obra-por-id :? :1
+SELECT obr_razonsoc
+FROM tbc_obras
+WHERE obr_codigo = :obr_codigo

@@ -11,6 +11,7 @@
    [main.modelo.paciente :as paciente]
    [main.modelo.patologia :as patologia]
    [main.modelo.intervencion :as intervencion]
+   [main.modelo.obra-social :as obra-social]
    [main.backend.db.conexion :refer [conectar-asistencial conectar-maestros conexiones]]))
 
 (defonce plan-cache* (atom {}))
@@ -18,7 +19,12 @@
 (def resolvers [paciente/resolvers
                 patologia/resolvers
                 intervencion/resolvers
-                (pbir/equivalence-resolver :tbc_interven/itv_codi :tbc_guardia/guar_diagnostico)])
+                obra-social/resolvers
+                (pbir/equivalence-resolver :tbc_interven/itv_codi :tbc_guardia/guar_diagnostico)
+                (pbir/equivalence-resolver :tbc_guardia/guar_histclinica :tbc_hist_cab_new/histcabnrounico)
+                (pbir/equivalence-resolver :tbc_admision_scroll/adm_obrsoc :tbc_obras/obr_codigo)
+                (pbir/equivalence-resolver :tbc_hist_cab_new/histcabobra :tbc_obras/obr_codigo)
+                (pbir/equivalence-resolver :tbc_admision_scroll/adm_histclinuni :tbc_hist_cab_new/histcabnrounico)])
 
 (def env (-> #_{::plan-cache* plan-cache*} {} (pci/register resolvers)))
 
@@ -61,6 +67,7 @@
   (p.eql/process env {:tbc_interven/itv_codi 1014} [:intervencion])
   (p.eql/process env [{:todas-las-patologias
                        [{:todas-las-patologias [:tbc_patologia/pat_descrip]}]}])
+  (p.eql/process env {:tbc_obras/obr_codigo 1820} [:obra])
   
   (def path [{:pacientes-ambulatorios
               [:tbc_guardia/id

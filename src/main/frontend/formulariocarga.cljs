@@ -53,27 +53,27 @@
   (print (str "Propiedades en DatosPaciente: " props))
   (print (type edad))
   (div :#datospaciente
-       (div
-        (div
-         (label "Paciente")
+       (div :.grid.grid-cols-4.gap-2
+        (div :.flex-1.gap-2
+         (label :.p-1 "Paciente: ")
          (span nombre))
-        (div
-         (label "Obra social")
+        (div :.flex-1.gap-2
+         (label :.p-1 "Obra social: ")
          (span obra_social))
-        (div
-         (label "Historia Clínica")
+        (div :.flex-1.gap-2
+         (label :.p-1 "Historia Clínica: ")
          (span hc))
-        (div
-         (label "Historia Clínica Única")
+        (div :.flex-1.gap-2
+         (label :.p-1 "Historia Clínica Única: ")
          (span (or hcu 0)))
-        (div
-         (label "Sexo")
-         (span sexo))
-        (div
-         (label "Edad")
+        (div :.flex-1.gap-2
+         (label :.p-1 "Sexo: ")
+         (span (u/obtener-sexo sexo)))
+        (div :.flex-1.gap-2
+         (label :.p-1 "Edad: ")
          (span (u/obtener-edad edad)))
-        (div
-         (label "Fecha de inicio")
+        (div :.flex-1.gap-2
+         (label :.p-1 "Fecha de inicio: ")
          (span (js/Date))))))
 
 (def ui-datos-paciente (comp/factory DatosPaciente))
@@ -90,7 +90,7 @@
                         (map :tbc_patologia/pat_descrip)
                         (map string/trim)
                         sort)]
-    (div :#encabezado
+    (div :#encabezado.p-3.grid.grid-cols-2.gap-2
          (ui-renglon-seleccion {:etiqueta "Diagnóstico"
                                 :opciones patologias
                                 :onChange #(m/set-string! this :ui/diagnostico :event %)})
