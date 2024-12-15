@@ -4,6 +4,7 @@
             [com.fulcrologic.fulcro.routing.dynamic-routing :as dr :refer [defrouter]] 
             [main.frontend.formulariocarga :as formulariocarga]
             [main.modelo.paciente :as paciente]
+            [main.frontend.routing :refer [route-to]]
             [com.fulcrologic.fulcro.dom :as dom :refer [form
                                                         button
                                                         div
@@ -32,7 +33,7 @@
   [comp-ref patient-map patient-id]
   (comp/transact! comp-ref [(paciente/selecciona-paciente patient-map)] {:parallel? true})
   (df/load! comp-ref :todas-las-patologias nil {:target [:component/id ::formulariocarga/FormularioCarga :patologias]}) 
-  (dr/change-route! comp-ref (dr/path-to formulariocarga/FormularioCarga patient-id)))
+  (comp/transact! comp-ref [(route-to {:path (dr/path-to formulariocarga/FormularioCarga patient-id)})]))
 
 (defsc PacienteAmbulatorio [this {:keys [tbc_guardia/id 
                                          tbc_guardia/guar_apenom 

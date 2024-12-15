@@ -1,23 +1,21 @@
 (ns main.frontend.client
-  (:require [com.fulcrologic.fulcro.application :as app] 
-            [com.fulcrologic.fulcro.react.version18 :refer [with-react18]]
-            [com.fulcrologic.fulcro.components :as comp]
-            [com.fulcrologic.fulcro.networking.http-remote :as http]
-            [com.fulcrologic.fulcro.data-fetch :as df]
+  (:require [com.fulcrologic.fulcro.components :as comp] 
+            [com.fulcrologic.fulcro.data-fetch :as df] 
             [com.fulcrologic.fulcro.routing.dynamic-routing :as dr]
+            [main.frontend.routing :refer [iniciar! route-to]]
+            [com.fulcrologic.fulcro.application :as app]
+            [main.frontend.application :refer [APP]]
             ;;["react-dom/client" :as dom-client]
             [main.frontend.root :refer [Root]]
             [main.frontend.seleccion-pacientes :refer [PacienteList]]))
 
-(defonce APP (-> (app/fulcro-app {:remotes {:remote (http/fulcro-http-remote {})}}) (with-react18)))
-
 (defn ^:export init []
   (js/console.log "Cargando aplicación...")
   (app/set-root! APP Root {:initialize-state? true})
-  (dr/initialize! APP) 
+  (iniciar!) 
   (js/console.log "Cargando datos...") 
   (df/load! APP :todos-los-pacientes PacienteList {:marker :carga-paciente})
-  (dr/change-route! APP ["lista_pacientes"])
+  (comp/transact! APP [(route-to {:path (dr/path-to PacienteList)})])
   (js/console.log "Montando aplicación...")
   (app/mount! APP Root "app" {:initialize-state? false}))
 

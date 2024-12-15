@@ -29,13 +29,13 @@
 
 (defsc Cabecera [this {}]
   {}
-  (div :#cabecera
-       (div
-        (img {:url " " :alt "imagen_sanatorio"}))
-       (div
-        (h2 "Carga de datos"))
-       (div
-        (h3 (str "Fecha: " (js/Date))))))
+  (div :#cabecera.flex.flex-row.gap-3.p-4.m-4.bg-cyan-400.ring-4
+       (div {:classes ["basis-1/4"]} 
+        (img :.p-2 {:url "public/img/Logo_Sanatorio_Colegiales_-_Horizontal-350x156.png" :alt "imagen_sanatorio"}))
+       (div {:classes ["basis-1/2"]}
+        (h2 :.p-2.text-xl.font-bold.text-center.italic "Carga de datos"))
+       (div {:classes ["basis-1/4"]}
+        (h3 :.p-2 (str "Fecha: " (js/Date))))))
 
 (def ui-cabecera (comp/factory Cabecera))
 
@@ -49,9 +49,7 @@
                      :sexo (:sexo params)
                      :edad (:edad params)
                      :obra_social (:obra_social params)})
-   :ident :id}
-  (print (str "Propiedades en DatosPaciente: " props))
-  (print (type edad))
+   :ident :id} 
   (div :#datospaciente
        (div :.grid.grid-cols-4.gap-2
         (div :.flex-1.gap-2
@@ -144,18 +142,19 @@
    :route-segment ["carga" :paciente-id] 
    :initial-state {:paciente-seleccionado {}
                    :patologias []}} 
-  (section
-   (nav
-    (ul
-     (li (a {:href "#datospaciente"} "Datos personales"))
-     (li (a {:href "#encabezado"} "Encabezado"))
-     (li (a {:href "#grilla"} "Grilla"))
-     (li (a {:href "#medicamentos"} "Medicamentos"))
-     (li (a {:href "#pie"} "Pie"))
-     (li (a {:href "#observaciones"} "Observaciones"))))
+  (section :.size-full.m-2.p-4
+   (nav :.justify-items-center
+    (ul :.flex.flew-row.p-3.gap-4
+     (li (div :.p-2.border-solid.border-2.border-cyan-950.hover:text-white.box-border (a {:href "#datospaciente"} "Datos personales")))
+     (li (div :.p-2.border-solid.border-2.border-cyan-950.hover:text-white.box-border (a {:href "#encabezado"} "Encabezado")))
+     (li (div :.p-2.border-solid.border-2.border-cyan-950.hover:text-white.box-border (a {:href "#grilla"} "Grilla")))
+     (li (div :.p-2.border-solid.border-2.border-cyan-950.hover:text-white.box-border (a {:href "#medicamentos"} "Medicamentos")))
+     (li (div :.p-2.border-solid.border-2.border-cyan-950.hover:text-white.box-border (a {:href "#pie"} "Pie")))
+     (li (div :.p-2.border-solid.border-2.border-cyan-950.hover:text-white.box-border (a {:href "#observaciones"} "Observaciones")))
+     (li (div :.p-2.border-solid.border-2.border-cyan-950.hover:text-white.box-border (a {:onClick (fn [_] ) #_(dr/change-route! this ["lista_pacientes"])} "Selección de paciente")))))
    (ui-cabecera)
    (ui-datos-paciente paciente-seleccionado)
-   (div :#cuerpo
+   (div :#cuerpo.size-full
         (form 
          (ui-encabezado {:todas-las-patologias patologias}) 
          (ui-grilla)
