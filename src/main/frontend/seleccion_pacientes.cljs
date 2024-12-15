@@ -32,7 +32,8 @@
 (defn gatillar-transicion-formulario-carga
   [comp-ref patient-map patient-id]
   (comp/transact! comp-ref [(paciente/selecciona-paciente patient-map)] {:parallel? true})
-  (df/load! comp-ref :todas-las-patologias nil {:target [:component/id ::formulariocarga/FormularioCarga :patologias]}) 
+  (df/load! comp-ref :todas-las-patologias nil {:target [:component/id ::formulariocarga/FormularioCarga :patologias]})
+  (df/load! comp-ref :intervenciones nil {:target [:component/id ::formulariocarga/FormularioCarga :intervenciones]})
   (comp/transact! comp-ref [(route-to {:path (dr/path-to formulariocarga/FormularioCarga patient-id)})]))
 
 (defsc PacienteAmbulatorio [this {:keys [tbc_guardia/id 

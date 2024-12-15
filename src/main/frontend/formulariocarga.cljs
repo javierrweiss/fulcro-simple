@@ -53,53 +53,65 @@
   (div :#datospaciente
        (div :.grid.grid-cols-4.gap-2
         (div :.flex-1.gap-2
-         (label :.p-1 "Paciente: ")
+         (label :.p-1.font-bold "Paciente: ")
          (span nombre))
         (div :.flex-1.gap-2
-         (label :.p-1 "Obra social: ")
+         (label :.p-1.font-bold "Obra social: ")
          (span obra_social))
         (div :.flex-1.gap-2
-         (label :.p-1 "Historia Clínica: ")
+         (label :.p-1.font-bold "Historia Clínica: ")
          (span hc))
         (div :.flex-1.gap-2
-         (label :.p-1 "Historia Clínica Única: ")
+         (label :.p-1.font-bold "Historia Clínica Única: ")
          (span (or hcu 0)))
         (div :.flex-1.gap-2
-         (label :.p-1 "Sexo: ")
+         (label :.p-1.font-bold "Sexo: ")
          (span (u/obtener-sexo sexo)))
         (div :.flex-1.gap-2
-         (label :.p-1 "Edad: ")
+         (label :.p-1.font-bold "Edad: ")
          (span (u/obtener-edad edad)))
         (div :.flex-1.gap-2
-         (label :.p-1 "Fecha de inicio: ")
+         (label :.p-1.font-bold "Fecha de inicio: ")
          (span (js/Date))))))
 
 (def ui-datos-paciente (comp/factory DatosPaciente))
 
 (defsc Encabezado [this props]
-  {:query  [:tbc_patologia/pat_descrip
+  {:query  [:tbc_patologia/pat_codi
+            :tbc_patologia/pat_descrip
+            :tbc_interven/itv_codi
+            :tbc_interven/itv_descripcion
             :ui/diagnostico
             :ui/diagnostico-operatorio
             :ui/operacion-propuesta
             :ui/operacion-realizada]
    :ident (fn [] [:component/id ::Encabezado])
    :initial-state {}}
-  (let [patologias (->> (:todas-las-patologias props)
-                        (map :tbc_patologia/pat_descrip)
-                        (map string/trim)
-                        sort)]
+  (let [patologias (->> (:todas-las-patologias props) 
+                        (sort-by :tbc_patologia/pat_descrip))
+        intervenciones (->> (:intervenciones props)
+                            (sort-by :tbc_interven/itv_descripcion))] 
+    (print (str "Patologías en Encabezado: " patologias))
     (div :#encabezado.p-3.grid.grid-cols-2.gap-2
          (ui-renglon-seleccion {:etiqueta "Diagnóstico"
                                 :opciones patologias
+                                :llave-valor-real :tbc_patologia/pat_codi
+                                :llave-valor-mostrado :tbc_patologia/pat_descrip
                                 :onChange #(m/set-string! this :ui/diagnostico :event %)})
          (ui-renglon-seleccion {:etiqueta "Diagnóstico operatorio"
                                 :opciones patologias
+                                :llave-valor-real :tbc_patologia/pat_codi
+                                :llave-valor-mostrado :tbc_patologia/pat_descrip
                                 :onChange #(m/set-string! this :ui/diagnostico-operatorio :event %)})
          (ui-renglon-seleccion {:etiqueta "Operación propuesta"
-                                :opciones patologias
+                                :opciones intervenciones
+                                :llave-valor-real :tbc_interven/itv_codi
+                                :llave-valor-mostrado :tbc_interven/itv_descripcion
                                 :onChange #(m/set-string! this :ui/operacion-propuesta :event %)})
          (ui-renglon-seleccion {:etiqueta "Operación realizada"
-                                :opciones patologias
+                                :opciones intervenciones
+                                :llave-valor-real :tbc_interven/itv_codi
+                                :llave-valor-mostrado :tbc_interven/itv_descripcion
                                 :onChange #(m/set-string! this :ui/operacion-realizada :event %)}))))
 
 (def ui-encabezado (comp/factory Encabezado))
@@ -134,14 +146,16 @@
 
 (def ui-nomencladores (comp/factory Nomencladores))
 
-(defsc FormularioCarga [this {:keys [paciente-seleccionado patologias]}]
+(defsc FormularioCarga [this {:keys [paciente-seleccionado patologias intervenciones]}]
   {:use-hooks? true
    :query [:paciente-seleccionado
-           {:patologias (comp/get-query Encabezado)}]
+           {:patologias (comp/get-query Encabezado)}
+           {:intervenciones (comp/get-query Encabezado)}]
    :ident (fn [_] [:component/id ::FormularioCarga])
    :route-segment ["carga" :paciente-id] 
    :initial-state {:paciente-seleccionado {}
-                   :patologias []}} 
+                   :patologias []
+                   :intervenciones []}} 
   (section :.size-full.m-2.p-4
    (nav :.justify-items-center
     (ul :.flex.flew-row.p-3.gap-4
@@ -156,7 +170,8 @@
    (ui-datos-paciente paciente-seleccionado)
    (div :#cuerpo.size-full
         (form 
-         (ui-encabezado {:todas-las-patologias patologias}) 
+         (ui-encabezado {:todas-las-patologias patologias
+                         :intervenciones intervenciones}) 
          (ui-grilla)
          (ui-medicamentos)
          (ui-pie)

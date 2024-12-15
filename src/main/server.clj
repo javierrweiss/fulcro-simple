@@ -68,7 +68,7 @@
   (p.eql/process env [{:todas-las-patologias
                        [{:todas-las-patologias [:tbc_patologia/pat_descrip]}]}])
   (p.eql/process env {:tbc_obras/obr_codigo 1820} [:obra])
-  
+  (p.eql/process env [:intervenciones])
   (def path [{:pacientes-ambulatorios
               [:tbc_guardia/id
                :tbc_guardia/guar_apenom
