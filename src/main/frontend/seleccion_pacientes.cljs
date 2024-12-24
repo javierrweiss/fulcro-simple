@@ -141,42 +141,44 @@
   {:use-hooks? true
    :query  [{:pacientes-ambulatorios (comp/get-query PacienteAmbulatorio)}
             {:pacientes-internados (comp/get-query PacienteInternado)}
-            :ui/carga-paciente [df/marker-table :carga-paciente]
             :ui/tipo-paciente]
    :initial-state {:pacientes-ambulatorios {}
                    :pacientes-internados {}}}
-  (let [current-load (get props [df/marker-table :paciente])] 
-    (if (= tipo-paciente :ambulatorio)
-      (loading current-load (table :.table-auto.border-2.border-cyan-900.m-4.p-4
-                             (tbody
-                              (tr :.bg-cyan-200 (th "Historia Clínica") (th "Nombre") (th "Estado") (th "Diagnóstico") (th "Fecha ingreso") (th "Hora ingreso"))
-                              (map ui-paciente-ambulatorio pacientes-ambulatorios))))
-      (loading current-load (table :.table-auto.border.border-cyan-900.m-4.p-4
-                             (tbody
-                              (tr :.bg-cyan-200 (th "Historia Clínica") (th "Historia Clínica Única") (th "Nombre") (th "Habitación") (th "Cama") (th "Fecha ingreso") (th "Hora ingreso"))
-                              (map ui-paciente-internado pacientes-internados)))))))
+  (if (= tipo-paciente :ambulatorio)
+    (table :.justify-self-center.table-auto.border-2.border-cyan-900.m-4.p-4
+           (tbody
+            (tr :.bg-cyan-200 (th "Historia Clínica") (th "Nombre") (th "Estado") (th "Diagnóstico") (th "Fecha ingreso") (th "Hora ingreso"))
+            (map ui-paciente-ambulatorio pacientes-ambulatorios)))
+    (table :.justify-self-center.table-auto.border.border-cyan-900.m-4.p-4
+           (tbody
+            (tr :.bg-cyan-200 (th "Historia Clínica") (th "Historia Clínica Única") (th "Nombre") (th "Habitación") (th "Cama") (th "Fecha ingreso") (th "Hora ingreso"))
+            (map ui-paciente-internado pacientes-internados)))))
 
 (def ui-pacientetable (comp/factory PacienteTable))
 
 (defsc PacienteList [this {:keys [todos-los-pacientes ui/tipo-paciente] :as props}]
   {:use-hooks? true
    :query  [{:todos-los-pacientes (comp/get-query PacienteTable)}
-            :ui/carga-paciente 
-            [df/marker-table :carga-paciente]
-            :ui/tipo-paciente]
+            :ui/carga-paciente
+            :ui/tipo-paciente
+            [df/marker-table :carga-paciente]]
    :initial-state {:todos-los-pacientes {}
                    :ui/tipo-paciente :ambulatorio}
    :ident (fn [_] [:component/id :PacienteList])
    :route-segment ["lista_pacientes"]}
-  (div :.p-4.box-border.w-full
-   (h2 :.text-center.text-3xl.font-black.p-2 "Selección de Paciente")
-   (button :.border-solid.border-2.border-stone-300.ring-4.rounded.m-4.p-3 
-           {:onClick #(comp/transact! this [(paciente/toggle-tipo-paciente props)])}
-           (str "Ver lista de pacientes " (if (= tipo-paciente :ambulatorio) "internados" "ambulatorios")))
-   (let [datos (first todos-los-pacientes)] 
-     (ui-pacientetable {:pacientes-ambulatorios (:pacientes-ambulatorios datos)
-                        :pacientes-internados (:pacientes-internados datos)
-                        :ui/tipo-paciente tipo-paciente}))))
+  (div :.p-4.size-full
+       (h2 :.text-center.text-3xl.font-black.p-2 "Selección de Paciente")
+       (button :.border-solid.border-2.border-stone-300.ring-4.rounded.m-4.p-3
+               {:onClick #(comp/transact! this [(paciente/toggle-tipo-paciente props)])}
+               (str "Ver lista de pacientes " (if (= tipo-paciente :ambulatorio) "internados" "ambulatorios")))
+       (let [datos (first todos-los-pacientes)
+             marker (get props [df/marker-table :carga-paciente])]
+         (cond
+           (df/loading? marker) (p :.size-full.border-box.text-center.text-2xl.font-black.p-6 "Cargando...")
+           (df/failed? marker) (p :.size-full.border-box.text-center.text-2xl.font-black.p-6 "¡Lo sentimos! ¡Hubo un problema al cargar los datos!")
+           :else (ui-pacientetable {:pacientes-ambulatorios (:pacientes-ambulatorios datos)
+                                    :pacientes-internados (:pacientes-internados datos)
+                                    :ui/tipo-paciente tipo-paciente})))))
 
 
 (comment
