@@ -31,7 +31,7 @@
         ast (eql/query->ast root-query)]
     (some? (dr/ast-node-for-route ast ruta)))) 
  
- (def default-route ["lista_pacientes"])
+(def default-route ["lista_pacientes"])
 
 (defonce historia (pushy/pushy
                    (fn [path]

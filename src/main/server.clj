@@ -11,8 +11,7 @@
    [main.modelo.paciente :as paciente]
    [main.modelo.patologia :as patologia]
    [main.modelo.intervencion :as intervencion]
-   [main.modelo.obra-social :as obra-social]
-   [main.backend.db.conexion :refer [conectar-asistencial conectar-maestros conexiones]]))
+   [main.modelo.obra-social :as obra-social]))
 
 (defonce plan-cache* (atom {}))
 
@@ -26,7 +25,7 @@
                 (pbir/equivalence-resolver :tbc_hist_cab_new/histcabobra :tbc_obras/obr_codigo)
                 (pbir/equivalence-resolver :tbc_admision_scroll/adm_histclinuni :tbc_hist_cab_new/histcabnrounico)])
 
-(def env (-> #_{::plan-cache* plan-cache*} {} (pci/register resolvers)))
+(def env (-> {::plan-cache* plan-cache*} {} (pci/register resolvers)))
 
 (def parser (p.eql/boundary-interface env))
 
@@ -45,16 +44,13 @@
 
 (defn start []
   (let [srv (http/run-server #'middleware {:port 3000})]
-    (reset! server srv)
-    (conectar-asistencial)
-    (conectar-maestros)
+    (reset! server srv) 
     :ok))
 
 (defn stop []
   (when @server
     (@server :timeout 100)
-    (reset! server nil)
-    (reset! conexiones nil)))
+    (reset! server nil)))
       
 (comment  
   (stop)

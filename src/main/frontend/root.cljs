@@ -7,6 +7,7 @@
 
 (defrouter CargaRouter [_ {:keys [current-state]}]
   {:router-targets [PacienteList FormularioCarga]}
+  (print current-state)
   (case current-state
     :pending (div (p "Cargando..."))
     :failed (div (p "¡Lo sentimos! ¡Hubo un problema con el formulario de carga!"))

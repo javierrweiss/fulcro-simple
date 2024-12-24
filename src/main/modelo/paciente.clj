@@ -1,7 +1,8 @@
 (ns main.modelo.paciente
   (:require [com.wsscode.pathom3.connect.operation :as pco]
-            [main.backend.db.conexion :refer [conexiones conectar-asistencial]]
-            [main.backend.db.config :as c]))
+            [main.backend.db.conexion :refer [obtener-conexion]]
+            [main.backend.db.config :as c])
+  (:import java.sql.SQLException))
 
 (pco/defresolver pacientes-internados [env _]
   {::pco/output [{:pacientes-internados [:tbc_admision_scroll/adm_histclin
@@ -15,13 +16,15 @@
                                          :tbc_admision_scroll/adm_obrsoc
                                          :tbc_admision_scroll/adm_horing
                                          :tbc_admision_scroll/adm_fecnac]}]} 
-  (when-not (:asistencial @conexiones) (conectar-asistencial))
   {:pacientes-internados (mapv (fn [m]
                                  (-> m
                                      (assoc :tbc_admision_scroll/id (random-uuid))
                                      (update :tbc_admision_scroll/adm_histclin int)
                                      (update :tbc_admision_scroll/adm_histclinuni int)))
-                               (c/carga-internados (:asistencial @conexiones)))})
+                               (try 
+                                 (with-open [c (obtener-conexion :asistencial)] 
+                                      (c/carga-internados c))
+                                 (catch SQLException e (throw (ex-message e)))))})
 
 (pco/defresolver pacientes-ambulatorios [env _]
   {::pco/output [{:pacientes-ambulatorios [:tbc_guardia/guar_apenom
@@ -29,12 +32,14 @@
                                             :tbc_guardia/guar_estado
                                             :tbc_guardia/guar_fechaingreso
                                             :tbc_guardia/guar_histclinica
-                                            :tbc_guardia/guar_horaingreso]}]}
-  (when-not (:asistencial @conexiones) (conectar-asistencial))
+                                            :tbc_guardia/guar_horaingreso]}]} 
   {:pacientes-ambulatorios (mapv (fn [m]
                                   (-> (assoc m :tbc_guardia/id (random-uuid))
                                       (update :tbc_guardia/guar_histclinica int))) 
-                                (c/carga-guardia (:asistencial @conexiones)))})
+                                (try
+                                  (with-open [c (obtener-conexion :asistencial)] 
+                                    (c/carga-guardia c))
+                                  (catch SQLException e (throw (ex-message e)))))})
 
 (pco/defresolver todos-los-pacientes [env _]
   {::pco/output [:todos-los-pacientes [{:pacientes-internados [:tbc_admision_scroll/adm_histclin
@@ -68,9 +73,12 @@
                                                    :tbc_hist_cab_new/histcabfecaten
                                                    :tbc_hist_cab_new/histcabplanx
                                                    :tbc_hist_cab_new/histcabapellnom
-                                                   :tbc_hist_cab_new/histcabnrobenef]}]}
-  (when-not (:asistencial @conexiones) (conectar-asistencial))
-  {:pacientes-ambulatorios-histcab (c/carga-ambulatorios (:asistencial @conexiones))})
+                                                   :tbc_hist_cab_new/histcabnrobenef]}]} 
+  {:pacientes-ambulatorios-histcab 
+   (try
+     (with-open [c (obtener-conexion :asistencial)]
+       (c/carga-ambulatorios c))
+     (catch SQLException e (throw (ex-message e))))})
 
 (pco/defresolver obtener-paciente-ambulatorio-histcab-por-hc
   [_ {:tbc_hist_cab_new/keys [histcabnrounico]}]
@@ -84,9 +92,12 @@
                                                  :tbc_hist_cab_new/histcabfecaten
                                                  :tbc_hist_cab_new/histcabplanx
                                                  :tbc_hist_cab_new/histcabapellnom
-                                                 :tbc_hist_cab_new/histcabnrobenef]}]}
-  (when-not (:asistencial @conexiones) (conectar-asistencial))
-  {:paciente-ambulatorio-histcab (c/carga-ambulatorios-por-hc (:asistencial @conexiones) {:histcabnrounico histcabnrounico})})
+                                                 :tbc_hist_cab_new/histcabnrobenef]}]} 
+  {:paciente-ambulatorio-histcab
+   (try
+     (with-open [c (obtener-conexion :asistencial)]
+       (c/carga-ambulatorios-por-hc c {:histcabnrounico histcabnrounico}))
+     (catch SQLException e (throw (ex-message e))))})
  
 (def resolvers [pacientes-internados 
                 pacientes-ambulatorios 
@@ -95,11 +106,24 @@
                 obtener-paciente-ambulatorio-histcab-por-hc])
 
 (comment
-  (c/carga-internados-por-nombre (:asistencial @conexiones) {:nombre "BLANCO"})
-  (c/carga-guardia (:asistencial @conexiones))
- (todos-los-pacientes nil nil)
-  (obtener-pacientes-ambulatorios-histcab nil nil)
-  (obtener-paciente-ambulatorio-histcab-por-hc nil {:tbc_hist_cab_new/histcabnrounico 28})
-  (c/carga-ambulatorios-por-hc (:asistencial @conexiones) {:histcabnrounico 28})
   
-  :rcf) 
+  (pacientes-internados)
+
+  (pacientes-ambulatorios)
+  
+  (todos-los-pacientes nil nil)
+
+  (c/carga-internados-por-nombre (:asistencial @conexiones) {:nombre "BLANCO"})
+  
+  (time (with-open [c (obtener-conexion :asistencial)] 
+          (c/carga-guardia c))) 
+  
+  (with-open [c (obtener-conexion :asistencial)]
+    (c/carga-ambulatorios c))
+  
+ (todos-los-pacientes nil nil) 
+  (obtener-pacientes-ambulatorios-histcab nil nil) 
+  (obtener-paciente-ambulatorio-histcab-por-hc nil {:tbc_hist_cab_new/histcabnrounico 28})
+  
+  
+  :rcf)   

@@ -11,4 +11,10 @@
             :password ""
             :classname "relativity.jdbc.Driver"
             :host "10.200.0.30"
-            :port 1583}}
+            :port 1583}
+ :desal {:dbtype "postgresql"
+         :dbname "desal"
+         :username "desal"
+         :password "desal2016" 
+         :host "10.200.0.90"
+         :port 5432}}

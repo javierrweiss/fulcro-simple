@@ -91,7 +91,7 @@
                         (sort-by :tbc_patologia/pat_descrip))
         intervenciones (->> (:intervenciones props)
                             (sort-by :tbc_interven/itv_descripcion))] 
-    (print (str "Patologías en Encabezado: " patologias))
+    #_(print (str "Patologías en Encabezado: " patologias))
     (div :#encabezado.p-3.grid.grid-cols-2.gap-2
          (ui-renglon-seleccion {:etiqueta "Diagnóstico"
                                 :opciones patologias

@@ -46,3 +46,15 @@ FROM tbc_obras
 SELECT obr_razonsoc
 FROM tbc_obras
 WHERE obr_codigo = :obr_codigo
+
+-- :name buscar-ficha-anestesica :? :*
+SELECT fichaaneste_cab_id, histcli, fecha, edad, piso, pulso, riesgo_op_grado, posicion, cirujano_legajo, ayudante_legajo, auxiliar_legajo, urgencia,
+       complic_preoperatoria, premedicacion, droga_dosis, analgesia, zona_inyeccion, agente_anestesico, cant_inyectada_cc, anest_inhalatoria, anest_endovenosa
+       intubacion_traqueal, tubo_nro, mango, respiracion_espontanea, respiracion_asistida, resp_controlada_manual, resp_controlada_mecanica, sistema_sin_reinhalacion,
+       sistema_con_rehin_parcial, sistema_con_rehin_total, habitacion, resp_frec_x_min, resp_tipo, t_art_habitual_max, t_art_habitual_min, t_art_actual_max,
+       t_art_actual_min, induccion, mantenimiento, estado, observaciones, fecha_inicio, fecha_final, anest_gral, anest_conductiva, anest_local, anest_nla,
+       diagnostico, diagnostico_operatorio, dextrosa, fisiologica, sangre, anestesiologo_legajo, talla, peso, sexo, hora_inicio_grilla, hora_inyectada,
+       grilla_pasomin, grilla_horas, obra_social, histcli_unico, oper_propuesta, oper_realizada, cama, anestesiologo_tipo, cirprotocolo, cirujano_tipo,
+       ayudante_tipo, auxiliar_tipo, anes_numero, anestesiologo_lega, tbc_anest_carga_fecha, tbc_anest_carga_hora, modif_legajo, modif_fechahora
+FROM fichaaneste_cab
+WHERE (histcli = :histcli OR histcli_unico = :histcli_unico) AND cirprotocolo = :cirprotocolo AND estado = 0;
