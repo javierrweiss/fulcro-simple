@@ -10,4 +10,6 @@
 
 ~~5. Corregir cada select (diagnostico, diagnostico operatorio, operacion propuesta y operacion realizada) para que el valor sea el código (que tendremos que persistir) y se muestre la descripción.~~
 
-6. No está funcionando el marcador de carga en la lista de pacientes 
+~~6. No está funcionando el marcador de carga en la lista de pacientes ~~
+
+7. La hora del membrete debería actualizarse en tiempo real.

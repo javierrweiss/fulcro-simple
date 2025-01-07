@@ -1,7 +1,7 @@
 (ns main.frontend.formulariocarga
   (:require [com.fulcrologic.fulcro.components :as comp :refer [defsc]]
             [com.fulcrologic.fulcro.data-fetch :as df]
-            [main.frontend.generic-components :as generic] 
+            [main.frontend.generic-components :as generic]
             [main.modelo.paciente :as paciente]
             [com.fulcrologic.fulcro.dom :as dom :refer [form
                                                         button
@@ -23,19 +23,42 @@
                                                         table tbody tr th td]]
             [com.fulcrologic.fulcro.routing.dynamic-routing :as dr]
             [com.fulcrologic.fulcro.mutations :as m]
+            [com.fulcrologic.fulcro.react.hooks :as hooks]
             [main.frontend.generic-components :refer [ui-renglon ui-opcion ui-renglon-seleccion]]
             [clojure.string :as string]
             [main.frontend.utils.utils :as u]))
 
-(defsc Cabecera [this {}]
-  {}
+(m/defmutation actualizar-hora [{:keys [current-time]}]
+  (action [{:keys [state]}]
+          (swap! state assoc-in [:component/id ::HoraActual :current-time] current-time)))
+
+(defsc HoraActual [this {:keys [current-time] :as props}]
+  {:use-hooks? true
+   :query [:current-time]
+   :ident (fn [] [:component/id ::HoraActual])
+   :initial-state (fn [_] {:current-time (js/Date)})}
+  (hooks/use-effect
+   (fn []
+     (let [id (js/setInterval
+               (fn []
+                 (comp/transact! this [(actualizar-hora {:current-time (js/Date)})] {:refresh [::HoraActual]}))
+               1000)]
+       (fn [] (js/clearInterval id)))))
+  (h3 :.p-2.txt-2xl.font-bold (str current-time)))
+
+(def ui-hora-actual (comp/factory HoraActual))
+
+(defsc Cabecera [this props]
+  {:use-hooks? true 
+   :ident (fn [] [:component/id ::Cabecera])
+   :initial-state {:ui/current-time (comp/get-initial-state HoraActual)}} 
   (div :#cabecera.flex.flex-row.gap-3.p-4.m-4.bg-cyan-400.ring-4
-       (div {:classes ["basis-1/4"]} 
-        (img :.p-2 {:url "public/img/Logo_Sanatorio_Colegiales_-_Horizontal-350x156.png" :alt "imagen_sanatorio"}))
-       (div {:classes ["basis-1/2"]}
-        (h2 :.p-2.text-xl.font-bold.text-center.italic "Carga de datos"))
        (div {:classes ["basis-1/4"]}
-        (h3 :.p-2 (str "Fecha: " (js/Date))))))
+            (img :.p-2 {:src "/img/Logo_Sanatorio_Colegiales_-_Horizontal-350x156.png" :alt "imagen_sanatorio"}))
+       (div {:classes ["basis-1/2"]}
+            (h2 :.p-2.text-xl.font-bold.text-center.italic "Carga de datos"))
+       (div {:classes ["basis-1/4"]} 
+             (ui-hora-actual props))))
 
 (def ui-cabecera (comp/factory Cabecera))
 
@@ -146,39 +169,46 @@
 
 (def ui-nomencladores (comp/factory Nomencladores))
 
-(defsc FormularioCarga [this {:keys [paciente-seleccionado patologias intervenciones]}]
+(defsc FormularioCarga [this {:keys [ui/current-time paciente-seleccionado patologias intervenciones] :as props}]
   {:use-hooks? true
    :query [:paciente-seleccionado
+           {:ui/current-time (comp/get-query HoraActual)}
            {:patologias (comp/get-query Encabezado)}
            {:intervenciones (comp/get-query Encabezado)}]
    :ident (fn [_] [:component/id ::FormularioCarga])
-   :route-segment ["carga" :paciente-id] 
-   :initial-state {:paciente-seleccionado {}
-                   :patologias []
-                   :intervenciones []}} 
+   :route-segment ["carga" :paciente-id]
+   :initial-state (fn [_] 
+                    {:ui/current-time (comp/get-initial-state HoraActual)
+                     :paciente-seleccionado {}
+                     :patologias []
+                     :intervenciones []})}
+  #_(print "Props: " props)
   (section :.size-full.m-2.p-4
-   (nav :.justify-items-center
-    (ul :.flex.flew-row.p-3.gap-4
-     (li (div :.p-2.border-solid.border-2.border-cyan-950.hover:text-white.box-border (a {:href "#datospaciente"} "Datos personales")))
-     (li (div :.p-2.border-solid.border-2.border-cyan-950.hover:text-white.box-border (a {:href "#encabezado"} "Encabezado")))
-     (li (div :.p-2.border-solid.border-2.border-cyan-950.hover:text-white.box-border (a {:href "#grilla"} "Grilla")))
-     (li (div :.p-2.border-solid.border-2.border-cyan-950.hover:text-white.box-border (a {:href "#medicamentos"} "Medicamentos")))
-     (li (div :.p-2.border-solid.border-2.border-cyan-950.hover:text-white.box-border (a {:href "#pie"} "Pie")))
-     (li (div :.p-2.border-solid.border-2.border-cyan-950.hover:text-white.box-border (a {:href "#observaciones"} "Observaciones")))
-     (li (div :.p-2.border-solid.border-2.border-cyan-950.hover:text-white.box-border (a {:onClick (fn [_] ) #_(dr/change-route! this ["lista_pacientes"])} "Selección de paciente")))))
-   (ui-cabecera)
-   (ui-datos-paciente paciente-seleccionado)
-   (div :#cuerpo.size-full
-        (form 
-         (ui-encabezado {:todas-las-patologias patologias
-                         :intervenciones intervenciones}) 
-         (ui-grilla)
-         (ui-medicamentos)
-         (ui-pie)
-         (ui-observaciones)
-         (ui-nomencladores)))))
+           (nav :.justify-items-center
+                (ul :.flex.flew-row.p-3.gap-4
+                    (li (div :.p-2.border-solid.border-2.border-cyan-950.hover:text-white.box-border (a {:href "#datospaciente"} "Datos personales")))
+                    (li (div :.p-2.border-solid.border-2.border-cyan-950.hover:text-white.box-border (a {:href "#encabezado"} "Encabezado")))
+                    (li (div :.p-2.border-solid.border-2.border-cyan-950.hover:text-white.box-border (a {:href "#grilla"} "Grilla")))
+                    (li (div :.p-2.border-solid.border-2.border-cyan-950.hover:text-white.box-border (a {:href "#medicamentos"} "Medicamentos")))
+                    (li (div :.p-2.border-solid.border-2.border-cyan-950.hover:text-white.box-border (a {:href "#pie"} "Pie")))
+                    (li (div :.p-2.border-solid.border-2.border-cyan-950.hover:text-white.box-border (a {:href "#observaciones"} "Observaciones")))
+                    (li (div :.p-2.border-solid.border-2.border-cyan-950.hover:text-white.box-border (a {:onClick (fn [_]) #_(dr/change-route! this ["lista_pacientes"])} "Selección de paciente"))))) 
+           (print current-time)
+           (ui-cabecera current-time) 
+           (ui-datos-paciente paciente-seleccionado)
+           (div :#cuerpo.size-full
+                (form
+                 (ui-encabezado {:todas-las-patologias patologias
+                                 :intervenciones intervenciones})
+                 (ui-grilla)
+                 (ui-medicamentos)
+                 (ui-pie)
+                 (ui-observaciones)
+                 (ui-nomencladores)))))
 
 
 (comment
   
-  )
+  (hooks/use-effect)
+  
+  :rcf)
