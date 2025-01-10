@@ -33,6 +33,10 @@
 (defmethod obtener-conexion :desal [_]
   (deref pool-desal))
 
+(defmethod obtener-conexion :default
+ [_]
+ (throw (IllegalArgumentException. "No existe la conexión seleccionada")))
+
 (comment
   
   (ns-unmap *ns* 'obtener-conexion)
