@@ -11,7 +11,8 @@
    [main.modelo.paciente :as paciente]
    [main.modelo.patologia :as patologia]
    [main.modelo.intervencion :as intervencion]
-   [main.modelo.obra-social :as obra-social]))
+   [main.modelo.obra-social :as obra-social]
+   [main.modelo.ficha-anestesica :as ficha-anestesica]))
 
 (defonce plan-cache* (atom {}))
 
@@ -19,6 +20,7 @@
                 patologia/resolvers
                 intervencion/resolvers
                 obra-social/resolvers
+                ficha-anestesica/resolvers
                 (pbir/equivalence-resolver :tbc_interven/itv_codi :tbc_guardia/guar_diagnostico)
                 (pbir/equivalence-resolver :tbc_guardia/guar_histclinica :tbc_hist_cab_new/histcabnrounico)
                 (pbir/equivalence-resolver :tbc_admision_scroll/adm_obrsoc :tbc_obras/obr_codigo)
