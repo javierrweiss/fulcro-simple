@@ -12,4 +12,10 @@
 
 ~~6. No está funcionando el marcador de carga en la lista de pacientes ~~
 
-7. La hora del membrete debería actualizarse en tiempo real.
+7. ~~La hora del membrete debería actualizarse en tiempo real.~~
+
+8. Convertir todos los archivos de modelo a cljc
+
+9. Crear grilla
+
+10. Crear formularios para llenado de la ficha propiamente dicha
