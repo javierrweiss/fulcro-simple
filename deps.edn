@@ -21,4 +21,5 @@
             :extra-deps {thheller/shadow-cljs {:mvn/version "2.28.20"}
                          org.clojure/tools.namespace {:mvn/version "1.5.0"}
                          org.clojure/clojurescript {:mvn/version "1.11.132"}
-                         binaryage/devtools {:mvn/version "1.0.7"}}}}}
+                         binaryage/devtools {:mvn/version "1.0.7"}
+                         com.fulcrologic/fulcro-inspect {:mvn/version "1.0.3"}}}}}
