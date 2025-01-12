@@ -12,10 +12,20 @@
    [main.modelo.patologia :as patologia]
    [main.modelo.intervencion :as intervencion]
    [main.modelo.obra-social :as obra-social]
-   [main.modelo.ficha-anestesica :as ficha-anestesica]))
+   [main.modelo.ficha-anestesica :as ficha-anestesica]
+   [com.brunobonacci.mulog :as µ]))
+
+(def stop-publisher (µ/start-publisher! {:type :multi 
+                                         :publishers [{:type :simple-file :filename "/tmp/ficha-anestesica/events.log"}
+                                                      {:type :console}]}))
 
 (defonce plan-cache* (atom {}))
 
+(µ/set-global-context! {:app-name "ficha-anestesica"
+                        :version "0.0.1"
+                        :os (System/getProperty "os.name")
+                        :java-version (System/getProperty "java.version")})
+ 
 (def resolvers [paciente/resolvers
                 patologia/resolvers
                 intervencion/resolvers
@@ -45,14 +55,19 @@
 (defonce server (atom nil))
 
 (defn start []
-  (let [srv (http/run-server #'middleware {:port 3000})]
-    (reset! server srv) 
-    :ok))
+  (let [srv (http/run-server #'middleware {:port 3000
+                                           :error-logger (fn [msg ex]
+                                                           (µ/log ::error-servidor :mensaje msg :excepcion ex))
+                                           :warn-logger (fn [msg ex]
+                                                          (µ/log ::advertencia-servidor :mensaje msg :excepcion ex))})]
+    (reset! server srv)
+    (µ/log ::servidor-iniciado)))
 
 (defn stop []
   (when @server
     (@server :timeout 100)
-    (reset! server nil)))
+    (reset! server nil)
+    (stop-publisher)))
       
 (comment  
   (stop)
