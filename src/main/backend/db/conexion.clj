@@ -2,33 +2,58 @@
   (:require [next.jdbc.connection :as connection]
             [next.jdbc :as jdbc]
             [aero.core :refer [read-config]]
-            [clojure.java.io :as io])
+            [clojure.java.io :as io]
+            [com.potetm.fusebox.timeout :as to]
+            [com.brunobonacci.mulog :as µ]
+            [tick.core :as t])
   (:import com.zaxxer.hikari.HikariDataSource
            java.io.IOException
            java.sql.SQLException))
 
-(def conf (read-config (io/resource "config.edn")))
+(def conf (try 
+            (read-config (io/resource "config.edn"))
+            (catch IOException e (let [msj (ex-message e)] 
+                                   (µ/log ::excepcion-en-config :fecha (t/date-time) :excepcion msj)
+                                   (throw (ex-message e))))))
+ 
+(def timeout (to/init {::to/timeout-ms 500}))
  
 (defonce pool-desal (delay 
                       (try
                         (connection/->pool HikariDataSource (:desal conf))
-                        (catch SQLException e (throw (ex-message e)))
-                        (catch IOException e (throw (ex-message e)))
-                        (catch Exception e (throw (ex-message e))))))
+                        (catch SQLException e (let [msj (ex-message e)] 
+                                                (µ/log ::excepcion-en-pooling :fecha (t/date-time) :excepcion msj)
+                                                   (throw (ex-message e))))
+                        (catch IOException e (let [msj (ex-message e)] 
+                                               (µ/log ::excepcion-en-pooling :fecha (t/date-time) :excepcion msj) 
+                                               (throw (ex-message e))))
+                        (catch Exception e (let [msj (ex-message e)] 
+                                             (µ/log ::excepcion-en-pooling :fecha (t/date-time) :excepcion msj) 
+                                             (throw (ex-message e)))))))
 
 (defmulti obtener-conexion identity)
 
 (defmethod obtener-conexion :asistencial [_]
-  (try 
-    (jdbc/get-connection (:asistencial conf))
-    (catch IOException e (throw (ex-message e)))
-    (catch Exception e (throw (ex-message e)))))
+  (to/try-interruptible
+    (to/with-timeout timeout
+      (jdbc/get-connection (:asistencial conf))) 
+    (catch IOException e (let [msj (ex-message e)] 
+                           (µ/log ::excepcion-en-conexion-asistencial :fecha (t/date-time) :excepcion msj)
+                           (throw (ex-message e))))
+    (catch Exception e (let [msj (ex-message e)]
+                         (µ/log ::excepcion-en-conexion-asistencial :fecha (t/date-time) :excepcion msj)
+                         (throw (ex-message e))))))
 
 (defmethod obtener-conexion :maestros [_]
-  (try
-    (jdbc/get-connection (:maestros conf))
-    (catch IOException e (throw (ex-message e)))
-    (catch Exception e (throw (ex-message e)))))
+  (to/try-interruptible
+    (to/with-timeout timeout 
+      (jdbc/get-connection (:maestros conf)))
+    (catch IOException e (let [msj (ex-message e)]
+                           (µ/log ::excepcion-en-conexion-maestros :fecha (t/date-time) :excepcion msj)
+                           (throw (ex-message e))))
+    (catch Exception e (let [msj (ex-message e)]
+                         (µ/log ::excepcion-en-conexion-maestros :fecha (t/date-time) :excepcion msj)
+                         (throw (ex-message e))))))
 
 (defmethod obtener-conexion :desal [_]
   (deref pool-desal))

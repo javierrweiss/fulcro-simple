@@ -19,3 +19,7 @@
 9. Crear grilla
 
 10. Crear formularios para llenado de la ficha propiamente dicha
+
+11. ~~Redirigir /lista_pacientes a index.html para evitar 404 al recargar~~
+
+12. Cuando hay un timeout para cargar recursos (e.g. al armar la lista), debe aparecer el mensaje adecuado en la UI

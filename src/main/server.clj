@@ -1,19 +1,21 @@
 (ns main.server
   (:require
    [org.httpkit.server :as http] 
-   [com.fulcrologic.fulcro.server.api-middleware :as fmw :refer [not-found-handler wrap-api]]
+   [com.fulcrologic.fulcro.server.api-middleware :as fmw :refer [wrap-api]]
    [com.wsscode.pathom3.interface.eql :as p.eql] 
    [com.wsscode.pathom3.connect.indexes :as pci]
    [com.wsscode.pathom3.connect.built-in.resolvers :as pbir]
    [ring.middleware.content-type :refer [wrap-content-type]]
    [ring.middleware.not-modified :refer [wrap-not-modified]]
    [ring.middleware.resource :refer [wrap-resource]]
+   [ring.util.response :as response :refer [resource-response]]
    [main.modelo.paciente :as paciente]
    [main.modelo.patologia :as patologia]
    [main.modelo.intervencion :as intervencion]
    [main.modelo.obra-social :as obra-social]
    [main.modelo.ficha-anestesica :as ficha-anestesica]
-   [com.brunobonacci.mulog :as µ]))
+   [com.brunobonacci.mulog :as µ]
+   [tick.core :as t]))
 
 (def stop-publisher (µ/start-publisher! {:type :multi 
                                          :publishers [{:type :simple-file :filename "/tmp/ficha-anestesica/events.log"}
@@ -41,7 +43,10 @@
 
 (def parser (p.eql/boundary-interface env))
 
-(def middleware (-> not-found-handler
+(defn redirect-not-found [request]
+  (resource-response "index.html" {:root "public"}))
+
+(def middleware (-> redirect-not-found
                     (wrap-api {:uri "/api"
                                :parser (fn [request]
                                          (prn request)
@@ -57,11 +62,11 @@
 (defn start []
   (let [srv (http/run-server #'middleware {:port 3000
                                            :error-logger (fn [msg ex]
-                                                           (µ/log ::error-servidor :mensaje msg :excepcion ex))
+                                                           (µ/log ::error-servidor :fecha (t/date-time) :mensaje msg :excepcion ex))
                                            :warn-logger (fn [msg ex]
-                                                          (µ/log ::advertencia-servidor :mensaje msg :excepcion ex))})]
+                                                          (µ/log ::advertencia-servidor :fecha (t/date-time) :mensaje msg :excepcion ex))})]
     (reset! server srv)
-    (µ/log ::servidor-iniciado)))
+    (µ/log ::servidor-iniciado :fecha (t/date-time))))
 
 (defn stop []
   (when @server
@@ -72,6 +77,7 @@
 (comment  
   (stop)
   (start)
+  (t/date-time)
   (p.eql/process env [:pacientes-ambulatorios])
   (p.eql/process env [:pacientes-internados])
   (p.eql/process env [:todas-las-patologias])
@@ -117,10 +123,25 @@
 
   (p.eql/process env complete-path)
   
+  (p.eql/process env {:ficha-anestesica-id 73762} [:cabecera])
+
+  (p.eql/process env {:ficha-anestesica-id 73762} [:detalle])
   
+  (p.eql/process env {:ficha-anestesica-id 73762} [:nomencladores])
+ 
+  (p.eql/process env {:ficha-anestesica-id 73762} [:medicamentos])
+
+  (p.eql/process env {:fichaaneste-tipomedicion-id 9} [:tipomedicion])
+
+  (p.eql/process env {:histcli 3263980
+                      :histcli_unico 0
+                      :cirprotocolo 500575} [:cabecera])
   
+  (p.eql/process env {:ficha-anestesica-id 73762
+                      :fichaaneste-tipomedicion-id 9} [:ficha-anestesica])
   
+  (p.eql/process env {:ficha-anestesica-id 73161} [:detalle])
   
+    
   
-  
-  ) 
+  :rcf) 
