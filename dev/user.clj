@@ -8,12 +8,15 @@
   (server/start))
  
 (defn restart [] 
-  (server/stop)
-  (tools-ns/refresh :after 'server/start))
+  (when @server/server
+    (@server/server :timeout 100)
+    (reset! server/server nil))
+  (start)
+  #_(tools-ns/refresh :after 'server/start))
 
 (start)
 
 (comment 
   (restart)  
-
+ 
   )

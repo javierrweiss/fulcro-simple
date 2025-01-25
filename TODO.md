@@ -23,3 +23,46 @@
 11. ~~Redirigir /lista_pacientes a index.html para evitar 404 al recargar~~
 
 12. Cuando hay un timeout para cargar recursos (e.g. al armar la lista), debe aparecer el mensaje adecuado en la UI
+[(com.fulcrologic.fulcro.ui-state-machines/trigger-state-machine-event
+  {:com.fulcrologic.fulcro.ui-state-machines/asm-id
+   :main.frontend.root/CargaRouter,
+   :com.fulcrologic.fulcro.ui-state-machines/event-id :timeout!,
+   :com.fulcrologic.fulcro.ui-state-machines/event-data {}})]
+12.1 El problema es que el backend está enviando el timeout como una respuesta 200
+  - Debería tener en el request la llave del error, de lo contrario, Fulcro lo purga
+12.2 Estamos teniendo el siguiente error de Pathom que no nos permite utilizar el EQL en Fulcro Inspect => "Pathom can't find a path for the following elements in the query: [:com.wsscode.pathom.connect/indexes]",
+
+
+
+Plugins:
+
+No supe cómo usarlos bien
+```clojure
+(p.plugin/register {::p.plugin/id 'mutacion
+                                 :com.wsscode.pathom3.connect.runner/wrap-mutate
+                                 (fn [mutate]
+                                   (fn [env params] 
+                                     (try 
+                                       (mutate env params)
+                                       (catch Exception err {:com.wsscode.pathom3.connect.runner/mutation-error (ex-message err)}))))})
+             (p.plugin/register {::p.plugin/id 'resolver
+                                 :com.wsscode.pathom3.connect.runner/wrap-resolve
+                                 (fn [resolve]
+                                   (fn [env params]
+                                     (try
+                                       (resolve env params)
+                                       (catch Exception err {:com.wsscode.pathom3.connect.runner/error (ex-message err)}))))})
+             (p.plugin/register {::p.plugin/id 'err
+                                 :com.wsscode.pathom3.connect.runner/wrap-resolver-error (fn [_]
+                                                                                           (fn [_ node error] 
+                                                                                             (let [msj (ex-message error)]
+                                                                                               (µ/log ::error-en-resolver-pathom :fecha (t/date-time) :error msj :node node)
+                                                                                               {:com.wsscode.pathom3.connect.runner/error msj})))})
+             (p.plugin/register {::p.plugin/id 'err-mutation
+                                 :com.wsscode.pathom3.connect.runner/wrap-mutation-error
+                                 (fn [_]
+                                   (fn [_ ast error]
+                                     (let [msj (ex-message error)]
+                                       (µ/log ::error-en-mutacion-pathom :at (str "Error on" (:key ast)) :exception msj)
+                                       {:com.wsscode.pathom3.connect.runner/error msj})))})
+```

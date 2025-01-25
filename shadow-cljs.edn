@@ -16,6 +16,5 @@
                  :asset-path "/js/main"
                  :modules {:main {:init-fn main.frontend.client/init}}
                  :devtools {:after-load main.frontend.client/refrescar
-                            :preloads [#_com.fulcrologic.devtools.chrome-preload
-                                       #_com.fulcrologic.fulcro.inspect.preload
-                                       com.fulcrologic.devtools.electron-preload]}}}}
+                            :preloads [com.fulcrologic.devtools.chrome-preload 
+                                       #_com.fulcrologic.devtools.electron-preload]}}}}

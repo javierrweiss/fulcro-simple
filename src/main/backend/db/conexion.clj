@@ -14,7 +14,7 @@
             (read-config (io/resource "config.edn"))
             (catch IOException e (let [msj (ex-message e)] 
                                    (µ/log ::excepcion-en-config :fecha (t/date-time) :excepcion msj)
-                                   (throw (ex-message e))))))
+                                   (throw (ex-info "Error al leer archivo de configuracion" {:excepcion (ex-message e)}))))))
  
 (def timeout (to/init {::to/timeout-ms 500}))
  
@@ -23,13 +23,13 @@
                         (connection/->pool HikariDataSource (:desal conf))
                         (catch SQLException e (let [msj (ex-message e)] 
                                                 (µ/log ::excepcion-en-pooling :fecha (t/date-time) :excepcion msj)
-                                                   (throw (ex-message e))))
+                                                   (throw (ex-info "Error al crear connection pool" {:excepcion (ex-message e)}))))
                         (catch IOException e (let [msj (ex-message e)] 
                                                (µ/log ::excepcion-en-pooling :fecha (t/date-time) :excepcion msj) 
-                                               (throw (ex-message e))))
+                                               (throw (ex-info "Error al crear connection pool" {:excepcion (ex-message e)}))))
                         (catch Exception e (let [msj (ex-message e)] 
                                              (µ/log ::excepcion-en-pooling :fecha (t/date-time) :excepcion msj) 
-                                             (throw (ex-message e)))))))
+                                             (throw (ex-info "Error al crear connection pool" {:excepcion (ex-message e)})))))))
 
 (defmulti obtener-conexion identity)
 
@@ -39,10 +39,10 @@
       (jdbc/get-connection (:asistencial conf))) 
     (catch IOException e (let [msj (ex-message e)] 
                            (µ/log ::excepcion-en-conexion-asistencial :fecha (t/date-time) :excepcion msj)
-                           (throw (ex-message e))))
+                           (throw (ex-info "Error al crear conexion con asistencial" {:excepcion (ex-message e)}))))
     (catch Exception e (let [msj (ex-message e)]
                          (µ/log ::excepcion-en-conexion-asistencial :fecha (t/date-time) :excepcion msj)
-                         (throw (ex-message e))))))
+                         (throw (ex-info "Error al crear conexion con asistencial" {:excepcion (ex-message e)}))))))
 
 (defmethod obtener-conexion :maestros [_]
   (to/try-interruptible
@@ -50,10 +50,10 @@
       (jdbc/get-connection (:maestros conf)))
     (catch IOException e (let [msj (ex-message e)]
                            (µ/log ::excepcion-en-conexion-maestros :fecha (t/date-time) :excepcion msj)
-                           (throw (ex-message e))))
+                           (throw (ex-info "Error al crear conexion con maestros" {:excepcion (ex-message e)}))))
     (catch Exception e (let [msj (ex-message e)]
                          (µ/log ::excepcion-en-conexion-maestros :fecha (t/date-time) :excepcion msj)
-                         (throw (ex-message e))))))
+                         (throw (ex-info "Error al crear conexion con maestros" {:excepcion (ex-message e)}))))))
 
 (defmethod obtener-conexion :desal [_]
   (deref pool-desal))

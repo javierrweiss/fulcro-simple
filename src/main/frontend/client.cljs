@@ -7,14 +7,16 @@
             [main.frontend.application :refer [APP]]
             ;;["react-dom/client" :as dom-client]
             [main.frontend.root :refer [Root]]
-            [main.frontend.seleccion-pacientes :refer [PacienteList]]))
+            [main.frontend.seleccion-pacientes :refer [PacienteList]]
+            [main.frontend.mutations :refer [mostrar-error]]))
 
 (defn ^:export init []
-  (js/console.log "Cargando aplicación...")
+  (js/console.log "Cargando aplicación...") 
   (app/set-root! APP Root {:initialize-state? true})
   (iniciar!) 
   (js/console.log "Cargando datos...") 
-  (df/load! APP :todos-los-pacientes PacienteList {:marker :carga-paciente})
+  (df/load! APP :todos-los-pacientes PacienteList {:marker :carga-paciente
+                                                   :fallback `mostrar-error})
   (comp/transact! APP [(route-to {:path (dr/path-to PacienteList)})])
   (js/console.log "Montando aplicación...")
   (app/mount! APP Root "app" {:initialize-state? false}))

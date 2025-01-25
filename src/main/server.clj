@@ -1,9 +1,10 @@
 (ns main.server
   (:require
    [org.httpkit.server :as http] 
-   [com.fulcrologic.fulcro.server.api-middleware :as fmw :refer [wrap-api]]
+   [com.fulcrologic.fulcro.server.api-middleware :as fmw :refer [wrap-api]] 
    [com.wsscode.pathom3.interface.eql :as p.eql] 
-   [com.wsscode.pathom3.connect.indexes :as pci]
+   [com.wsscode.pathom3.connect.indexes :as pci] 
+   [com.wsscode.pathom3.plugin :as p.plugin]
    [com.wsscode.pathom3.connect.built-in.resolvers :as pbir]
    [ring.middleware.content-type :refer [wrap-content-type]]
    [ring.middleware.not-modified :refer [wrap-not-modified]]
@@ -17,9 +18,9 @@
    [com.brunobonacci.mulog :as µ]
    [tick.core :as t]))
 
-(def stop-publisher (µ/start-publisher! {:type :multi 
-                                         :publishers [{:type :simple-file :filename "/tmp/ficha-anestesica/events.log"}
-                                                      {:type :console}]}))
+(defonce stop-publisher (µ/start-publisher! {:type :multi
+                                             :publishers [{:type :simple-file :filename "/tmp/ficha-anestesica/events.log"}
+                                                          {:type :console}]}))
 
 (defonce plan-cache* (atom {}))
 
@@ -39,23 +40,40 @@
                 (pbir/equivalence-resolver :tbc_hist_cab_new/histcabobra :tbc_obras/obr_codigo)
                 (pbir/equivalence-resolver :tbc_admision_scroll/adm_histclinuni :tbc_hist_cab_new/histcabnrounico)])
 
-(def env (-> {::plan-cache* plan-cache*} {} (pci/register resolvers)))
+(def env (-> {::plan-cache* plan-cache*
+              :com.wsscode.pathom3.error/lenient-mode? true}
+             (pci/register resolvers)
+             (p.plugin/register {::p.plugin/id 'err
+                                 :com.wsscode.pathom3.connect.runner/wrap-resolver-error (fn [_]
+                                                                                           (fn [_ node error]
+                                                                                             (let [msj (ex-message error)]
+                                                                                               (µ/log ::error-en-resolver-pathom :fecha (t/date-time) :error msj :node node)
+                                                                                               {:com.wsscode.pathom3.connect.runner/error msj})))})
+             (p.plugin/register {::p.plugin/id 'err-mutation
+                                 :com.wsscode.pathom3.connect.runner/wrap-mutation-error
+                                 (fn [_]
+                                   (fn [_ ast error]
+                                     (let [msj (ex-message error)]
+                                       (µ/log ::error-en-mutacion-pathom :at (str "Error on" (:key ast)) :exception msj)
+                                       {:com.wsscode.pathom3.connect.runner/error msj})))})))
 
 (def parser (p.eql/boundary-interface env))
 
 (defn redirect-not-found [request]
   (resource-response "index.html" {:root "public"}))
 
+(defn parser-handler
+  [req] 
+  (parser req))
+
 (def middleware (-> redirect-not-found
                     (wrap-api {:uri "/api"
-                               :parser (fn [request]
-                                         (prn request)
-                                         (parser request))})
-                    (fmw/wrap-transit-params)
-                    (fmw/wrap-transit-response)
+                               :parser parser-handler})
                     (wrap-resource "public")
                     wrap-content-type
-                    wrap-not-modified))
+                    wrap-not-modified
+                    (fmw/wrap-transit-params)
+                    (fmw/wrap-transit-response)))
 
 (defonce server (atom nil))
 
@@ -64,7 +82,9 @@
                                            :error-logger (fn [msg ex]
                                                            (µ/log ::error-servidor :fecha (t/date-time) :mensaje msg :excepcion ex))
                                            :warn-logger (fn [msg ex]
-                                                          (µ/log ::advertencia-servidor :fecha (t/date-time) :mensaje msg :excepcion ex))})]
+                                                          (µ/log ::advertencia-servidor :fecha (t/date-time) :mensaje msg :excepcion ex))
+                                           #_#_:event-logger (fn [event]
+                                                           (µ/log (keyword (str *ns*) event) :fecha (t/date-time)))})]
     (reset! server srv)
     (µ/log ::servidor-iniciado :fecha (t/date-time))))
 
@@ -74,74 +94,49 @@
     (reset! server nil)
     (stop-publisher)))
       
-(comment  
-  (stop)
-  (start)
-  (t/date-time)
-  (p.eql/process env [:pacientes-ambulatorios])
-  (p.eql/process env [:pacientes-internados])
-  (p.eql/process env [:todas-las-patologias])
-  (p.eql/process env [{:todas-las-patologias [:tbc_patologia/pat_descrip]}])
-  (p.eql/process env [:todos-los-pacientes])
-  (p.eql/process env {:tbc_interven/itv_codi 1014} [:intervencion])
-  (p.eql/process env [{:todas-las-patologias
-                       [{:todas-las-patologias [:tbc_patologia/pat_descrip]}]}])
-  (p.eql/process env {:tbc_obras/obr_codigo 1820} [:obra])
-  (p.eql/process env [:intervenciones])
-  (def path [{:pacientes-ambulatorios
-              [:tbc_guardia/id
-               :tbc_guardia/guar_apenom
-               :tbc_guardia/guar_histclinica
-               :tbc_guardia/guar_estado 
-               :tbc_guardia/guar_fechaingreso
-               :tbc_guardia/guar_horaingreso
-               {:intervencion [:tbc_guardia/guar_diagnostico]}]}])
-  
-  (def complete-path [{:todos-los-pacientes
-                       [{:pacientes-ambulatorios
-                         [:tbc_guardia/id
-                          :tbc_guardia/guar_apenom
-                          :tbc_guardia/guar_histclinica
-                          :tbc_guardia/guar_estado
-                          {:intervencion [:tbc_guardia/guar_diagnostico]}
-                          :tbc_guardia/guar_fechaingreso
-                          :tbc_guardia/guar_horaingreso]}
-                        {:pacientes-internados
-                         [:tbc_admision_scroll/id
-                          :tbc_admision_scroll/adm_histclin
-                          :tbc_admision_scroll/adm_histclinuni
-                          :tbc_admision_scroll/adm_apelnom
-                          :tbc_admision_scroll/adm_habita
-                          :tbc_admision_scroll/adm_cama
-                          :tbc_admision_scroll/adm_fecing
-                          :tbc_admision_scroll/adm_horing]}
-                        [:ui.fulcro.client.data-fetch.load-markers/by-id
-                         :carga-paciente]]}
-                      [:ui.fulcro.client.data-fetch.load-markers/by-id :carga-paciente]])
+ (comment
    
-  (p.eql/process env path)
+   (p.eql/process env [:todos-los-pacientes])
 
-  (p.eql/process env complete-path)
-  
-  (p.eql/process env {:ficha-anestesica-id 73762} [:cabecera])
-
-  (p.eql/process env {:ficha-anestesica-id 73762} [:detalle])
-  
-  (p.eql/process env {:ficha-anestesica-id 73762} [:nomencladores])
- 
-  (p.eql/process env {:ficha-anestesica-id 73762} [:medicamentos])
-
-  (p.eql/process env {:fichaaneste-tipomedicion-id 9} [:tipomedicion])
-
-  (p.eql/process env {:histcli 3263980
-                      :histcli_unico 0
-                      :cirprotocolo 500575} [:cabecera])
-  
-  (p.eql/process env {:ficha-anestesica-id 73762
-                      :fichaaneste-tipomedicion-id 9} [:ficha-anestesica])
-  
-  (p.eql/process env {:ficha-anestesica-id 73161} [:detalle])
-  
+   (p.eql/process env [:pacientes-internados])
+   
+   (fmw/transit-response [:error 'error])
+   (fmw/transit-response {:error 'error})
+   (fmw/transit-response 'a) 
+   
+   
+   (def mock-request [{:todos-los-pacientes
+                       [{:todos-los-pacientes
+                         [{:pacientes-ambulatorios
+                           [:tbc_guardia/id 
+                            :tbc_guardia/guar_apenom
+                            :tbc_guardia/guar_histclinica
+                            :tbc_guardia/guar_estado
+                            :intervencion {:paciente-ambulatorio-histcab 
+                                           [:obra 
+                                            :tbc_hist_cab_new/histcabsexo 
+                                            :tbc_hist_cab_new/histcabfechanac]} 
+                            :tbc_guardia/guar_fechaingreso 
+                            :tbc_guardia/guar_horaingreso]} 
+                          {:pacientes-internados 
+                           [:tbc_admision_scroll/id 
+                            :tbc_admision_scroll/adm_histclin
+                            :tbc_admision_scroll/adm_histclinuni
+                            :tbc_admision_scroll/adm_apelnom
+                            :tbc_admision_scroll/adm_habita
+                            :tbc_admision_scroll/adm_cama
+                            :tbc_admision_scroll/adm_fecing
+                            :tbc_admision_scroll/adm_horing
+                            :tbc_admision_scroll/adm_sexo
+                            :tbc_admision_scroll/adm_obrsoc
+                            :tbc_admision_scroll/adm_fecnac]}]} 
+                            [:ui.fulcro.client.data-fetch.load-markers/by-id :carga-paciente]]}])
     
-  
-  :rcf) 
+   (p.eql/process env mock-request) 
+   (p.eql/process env (vector (update-in (first mock-request) [:todos-los-pacientes] conj [:com.wsscode.pathom3.connect.runner/attribute-errors])))
+    
+   (try
+     (throw (ex-info "Excepcion X" {:error "Error grave"}))
+     (catch Exception err {:com.wsscode.pathom3.connect.runner/mutation-error (ex-message err)}))
+
+   :rcf)

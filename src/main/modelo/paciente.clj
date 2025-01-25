@@ -1,7 +1,8 @@
 (ns main.modelo.paciente
   (:require [com.wsscode.pathom3.connect.operation :as pco]
             [main.backend.db.conexion :refer [obtener-conexion]]
-            [main.backend.db.config :as c])
+            [main.backend.db.config :as c]
+            [com.brunobonacci.mulog :as µ])
   (:import java.sql.SQLException))
 
 (pco/defresolver pacientes-internados [env _]
@@ -15,16 +16,16 @@
                                          :tbc_admision_scroll/adm_sexo
                                          :tbc_admision_scroll/adm_obrsoc
                                          :tbc_admision_scroll/adm_horing
-                                         :tbc_admision_scroll/adm_fecnac]}]} 
+                                         :tbc_admision_scroll/adm_fecnac]}]}
   {:pacientes-internados (mapv (fn [m]
                                  (-> m
                                      (assoc :tbc_admision_scroll/id (random-uuid))
                                      (update :tbc_admision_scroll/adm_histclin int)
                                      (update :tbc_admision_scroll/adm_histclinuni int)))
-                               (try 
-                                 (with-open [c (obtener-conexion :asistencial)] 
-                                      (c/carga-internados c))
-                                 (catch SQLException e (throw (ex-message e)))))})
+                               (try
+                                 (with-open [c (obtener-conexion :asistencial)]
+                                   (c/carga-internados c))
+                                 (catch SQLException e (µ/log ::excepcion-al-obtener-pacientes-internados :error (ex-message e)))))})
 
 (pco/defresolver pacientes-ambulatorios [env _]
   {::pco/output [{:pacientes-ambulatorios [:tbc_guardia/guar_apenom
@@ -39,7 +40,7 @@
                                 (try
                                   (with-open [c (obtener-conexion :asistencial)] 
                                     (c/carga-guardia c))
-                                  (catch SQLException e (throw (ex-message e)))))})
+                                  (catch SQLException e (throw (ex-info "Error al obtener pacientes ambulatorios" {:excepcion (ex-message e)})))))})
 
 (pco/defresolver todos-los-pacientes [env _]
   {::pco/output [:todos-los-pacientes [{:pacientes-internados [:tbc_admision_scroll/adm_histclin
@@ -92,12 +93,12 @@
                                                  :tbc_hist_cab_new/histcabfecaten
                                                  :tbc_hist_cab_new/histcabplanx
                                                  :tbc_hist_cab_new/histcabapellnom
-                                                 :tbc_hist_cab_new/histcabnrobenef]}]} 
+                                                 :tbc_hist_cab_new/histcabnrobenef]}]}
   {:paciente-ambulatorio-histcab
    (try
      (with-open [c (obtener-conexion :asistencial)]
        (c/carga-ambulatorios-por-hc c {:histcabnrounico histcabnrounico}))
-     (catch SQLException e (throw (ex-message e))))})
+     (catch SQLException e (throw (ex-info "Error al obtener cabecera de historias de pacientes ambulatorios" {:excepcion (ex-message e)}))))})
  
 (def resolvers [pacientes-internados 
                 pacientes-ambulatorios 

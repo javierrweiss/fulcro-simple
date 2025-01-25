@@ -156,14 +156,16 @@
 
 (def ui-pacientetable (comp/factory PacienteTable))
 
-(defsc PacienteList [this {:keys [todos-los-pacientes ui/tipo-paciente] :as props}]
+(defsc PacienteList [this {:keys [todos-los-pacientes ui/tipo-paciente ui/error] :as props}]
   {:use-hooks? true
    :query  [{:todos-los-pacientes (comp/get-query PacienteTable)}
             :ui/carga-paciente
             :ui/tipo-paciente
+            :ui/error 
             [df/marker-table :carga-paciente]]
    :initial-state {:todos-los-pacientes {}
-                   :ui/tipo-paciente :ambulatorio}
+                   :ui/tipo-paciente :ambulatorio
+                   :ui/error nil}
    :ident (fn [_] [:component/id :PacienteList])
    :route-segment ["lista_pacientes"]}
   (div :.p-4.size-full
@@ -175,7 +177,7 @@
              marker (get props [df/marker-table :carga-paciente])]
          (cond
            (df/loading? marker) (p :.size-full.border-box.text-center.text-2xl.font-black.p-6 "Cargando...")
-           (df/failed? marker) (p :.size-full.border-box.text-center.text-2xl.font-black.p-6 "¡Lo sentimos! ¡Hubo un problema al cargar los datos!")
+           error (p :.size-full.border-box.text-center.text-2xl.font-black.p-6 "¡Lo sentimos! ¡Hubo un problema al cargar los datos!")
            :else (ui-pacientetable {:pacientes-ambulatorios (:pacientes-ambulatorios datos)
                                     :pacientes-internados (:pacientes-internados datos)
                                     :ui/tipo-paciente tipo-paciente})))))
