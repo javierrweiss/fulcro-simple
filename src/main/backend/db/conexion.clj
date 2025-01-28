@@ -16,8 +16,8 @@
                                    (µ/log ::excepcion-en-config :fecha (t/date-time) :excepcion msj)
                                    (throw (ex-info "Error al leer archivo de configuracion" {:excepcion (ex-message e)}))))))
  
-(def timeout (to/init {::to/timeout-ms 500}))
- 
+(def timeout (to/init {::to/timeout-ms 5000}))
+  
 (defonce pool-desal (delay 
                       (try
                         (connection/->pool HikariDataSource (:desal conf))
