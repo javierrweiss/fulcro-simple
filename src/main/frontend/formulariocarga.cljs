@@ -24,6 +24,7 @@
             [com.fulcrologic.fulcro.routing.dynamic-routing :as dr]
             [com.fulcrologic.fulcro.mutations :as m]
             [com.fulcrologic.fulcro.react.hooks :as hooks]
+            [com.fulcrologic.fulcro.algorithms.form-state :as fs]
             [main.frontend.generic-components :refer [ui-renglon ui-opcion ui-renglon-seleccion]]
             [clojure.string :as string]
             [main.frontend.utils.utils :as u]))
@@ -58,7 +59,7 @@
        (div {:classes ["basis-1/2"]}
             (h2 :.p-2.text-xl.font-bold.text-center.italic "Carga de datos"))
        (div {:classes ["basis-1/4"]} 
-             (ui-hora-actual props))))
+             #_(ui-hora-actual props))))
 
 (def ui-cabecera (comp/factory Cabecera))
 
@@ -99,48 +100,198 @@
 
 (def ui-datos-paciente (comp/factory DatosPaciente))
 
-(defsc Encabezado [this props]
-  {:query  [:tbc_patologia/pat_codi
-            :tbc_patologia/pat_descrip
-            :tbc_interven/itv_codi
-            :tbc_interven/itv_descripcion
-            :ui/diagnostico
-            :ui/diagnostico-operatorio
-            :ui/operacion-propuesta
-            :ui/operacion-realizada]
-   :ident (fn [] [:component/id ::Encabezado])
-   :initial-state {}}
-  (let [patologias (->> (:todas-las-patologias props) 
+(defsc Patologias [this {:keys [todas-las-patologias
+                                intervenciones
+                                diagnostico
+                                diagnostico_operatorio
+                                oper_propuesta
+                                oper_realizada
+                                id] :as props}] 
+  {:query [:todas-las-patologias
+           :intervenciones
+           :diagnostico
+           :diagnostico_operatorio
+           :oper_propuesta
+           :oper_realizada
+           :id
+           fs/form-config-join]
+   :ident :id
+   :form-fields #{:diagnostico
+                  :diagnostico_operatorio
+                  :oper_propuesta
+                  :oper_realizada}} 
+  (let [patologias (->>  todas-las-patologias 
                         (sort-by :tbc_patologia/pat_descrip))
-        intervenciones (->> (:intervenciones props)
-                            (sort-by :tbc_interven/itv_descripcion))] 
-    #_(print (str "Patologías en Encabezado: " patologias))
-    (div :#encabezado.p-3.grid.grid-cols-2.gap-2
+        intervenciones (->> intervenciones
+                            (sort-by :tbc_interven/itv_descripcion))]
+    (div :#patologias
          (ui-renglon-seleccion {:etiqueta "Diagnóstico"
                                 :opciones patologias
                                 :llave-valor-real :tbc_patologia/pat_codi
                                 :llave-valor-mostrado :tbc_patologia/pat_descrip
-                                :onChange #(m/set-string! this :ui/diagnostico :event %)})
+                                :onChange #(m/set-string! this diagnostico :event %)})
          (ui-renglon-seleccion {:etiqueta "Diagnóstico operatorio"
                                 :opciones patologias
                                 :llave-valor-real :tbc_patologia/pat_codi
                                 :llave-valor-mostrado :tbc_patologia/pat_descrip
-                                :onChange #(m/set-string! this :ui/diagnostico-operatorio :event %)})
+                                :onChange #(m/set-string! this diagnostico_operatorio :event %)})
          (ui-renglon-seleccion {:etiqueta "Operación propuesta"
                                 :opciones intervenciones
                                 :llave-valor-real :tbc_interven/itv_codi
                                 :llave-valor-mostrado :tbc_interven/itv_descripcion
-                                :onChange #(m/set-string! this :ui/operacion-propuesta :event %)})
+                                :onChange #(m/set-string! this oper_propuesta :event %)})
          (ui-renglon-seleccion {:etiqueta "Operación realizada"
                                 :opciones intervenciones
                                 :llave-valor-real :tbc_interven/itv_codi
                                 :llave-valor-mostrado :tbc_interven/itv_descripcion
-                                :onChange #(m/set-string! this :ui/operacion-realizada :event %)}))))
+                                :onChange #(m/set-string! this oper_realizada :event %)}))))
+
+(def ui-patologias (comp/factory Patologias {:keyfn random-uuid}))
+
+(defsc PersonalMedico [this {:keys [profesionales
+                                    cirujano_legajo
+                                    ayudante_legajo
+                                    auxiliar_legajo
+                                    anestesiologo_lega
+                                    id]}]
+  {:query [:profesionales
+           :cirujano_legajo
+           :ayudante_legajo
+           :auxiliar_legajo
+           :anestesiologo_lega
+           :id
+           fs/form-config-join]
+   :ident :id
+   :form-fields #{:cirujano_legajo
+                  :ayudante_legajo
+                  :auxiliar_legajo
+                  :anestesiologo_lega}}
+  (print profesionales)
+  (let [profesionales (->> profesionales 
+                           (sort-by :tbc_medicos_personal/medperapeynom))] 
+    (div :#personal-medico
+               (ui-renglon-seleccion {:etiqueta "Cirujano"
+                                      :opciones profesionales
+                                      :llave-valor-real :tbc_medicos_personal/medpercod
+                                      :llave-valor-mostrado :tbc_medicos_personal/medperapeynom
+                                      :onChange #(m/set-integer! this cirujano_legajo :event %)})
+               (ui-renglon-seleccion {:etiqueta "Anestesiólogo"
+                                      :opciones profesionales
+                                      :llave-valor-real :tbc_medicos_personal/medpercod
+                                      :llave-valor-mostrado :tbc_medicos_personal/medperapeynom
+                                      :onChange #(m/set-integer! this anestesiologo_lega :event %)})
+               (ui-renglon-seleccion {:etiqueta "Ayudante"
+                                      :opciones profesionales
+                                      :llave-valor-real :tbc_medicos_personal/medpercod
+                                      :llave-valor-mostrado :tbc_medicos_personal/medperapeynom
+                                      :onChange #(m/set-integer! this ayudante_legajo :event %)})
+               (ui-renglon-seleccion {:etiqueta "Auxiliar"
+                                      :opciones profesionales
+                                      :llave-valor-real :tbc_medicos_personal/medpercod
+                                      :llave-valor-mostrado :tbc_medicos_personal/medperapeynom
+                                      :onChange #(m/set-integer! this auxiliar_legajo :event %)}))))
+
+(def ui-personal-medico (comp/factory PersonalMedico {:keyfn random-uuid}))
+
+#_'[tbc_interven/itv_codi
+ tbc_interven/itv_descripcion
+ ui/diagnostico
+ ui/diagnostico-operatorio
+ ui/operacion-propuesta
+ ui/operacion-realizada
+ paciente/id
+ diagnostico
+ diagnostico_operatorio
+ oper_propuesta
+ oper_realizada
+ cirujano_legajo
+ ayudante_legajo
+ auxiliar_legajo
+ anestesiologo_lega
+ resp_frec_x_min
+ riesgo_op_grado
+ resp_tipo
+ t_art_habitual_max
+ t_art_habitual_min
+ t_art_actual_max
+ t_art_actual_min
+ talla
+ peso
+ piso
+ habitacion
+ cama
+ pulso
+ complic_preoperatoria
+ anest_gral
+ anest_conductiva
+ anest_local
+ anest_nla
+ urgencia
+ premedicacion
+ droga_dosis]
+
+#_'[:tbc_patologia/pat_codi
+    :tbc_patologia/pat_descrip
+    :tbc_interven/itv_codi
+    :tbc_interven/itv_descripcion
+    :ui/diagnostico
+    :ui/diagnostico-operatorio
+    :ui/operacion-propuesta
+    :ui/operacion-realizada]
+
+(defsc Encabezado [this {:keys [todas-las-patologias
+                                intervenciones
+                                lista-profesionales
+                                id] :as props}]
+  {:query  [:todas-las-patologias
+            :intervenciones
+            :id
+            :lista-profesionales
+            fs/form-config-join]
+   :ident :id
+   #_#_:form-fields #{:diagnostico
+                      :diagnostico_operatorio
+                      :oper_propuesta
+                      :oper_realizada
+                      :cirujano_legajo
+                      :ayudante_legajo
+                      :auxiliar_legajo
+                      :anestesiologo_lega
+                      :resp_frec_x_min
+                      :riesgo_op_grado
+                      :resp_tipo
+                      :t_art_habitual_max
+                      :t_art_habitual_min
+                      :t_art_actual_max
+                      :t_art_actual_min
+                      :talla
+                      :peso
+                      :piso
+                      :habitacion
+                      :cama
+                      :pulso
+                      :complic_preoperatoria
+                      :anest_gral
+                      :anest_conductiva
+                      :anest_local
+                      :anest_nla
+                      :urgencia
+                      :premedicacion
+                      :droga_dosis}
+   :initial-state {}}
+  (div :#encabezado.p-3.grid.grid-cols-2.gap-2
+       (ui-patologias {:todas-las-patologias todas-las-patologias
+                       :intervenciones intervenciones
+                       :id id})
+       (ui-personal-medico {:profesionales lista-profesionales
+                            :id id})))
 
 (def ui-encabezado (comp/factory Encabezado))
 
-(defsc Grilla [this {}]
-  {}
+(defsc Grilla [this {:keys [id]}]
+  {:query [:id fs/form-config-join]
+   :ident :id
+   :form-fields #{}}
   (div :#grilla))
 
 (def ui-grilla (comp/factory Grilla))
@@ -169,20 +320,20 @@
 
 (def ui-nomencladores (comp/factory Nomencladores))
 
-(defsc FormularioCarga [this {:keys [ui/current-time paciente-seleccionado patologias intervenciones] :as props}]
+(defsc FormularioCarga [this {:keys [ui/current-time paciente-seleccionado datos-encabezado datos-profesionales] :as props}]
   {:use-hooks? true
    :query [:paciente-seleccionado
            {:ui/current-time (comp/get-query HoraActual)}
-           {:patologias (comp/get-query Encabezado)}
-           {:intervenciones (comp/get-query Encabezado)}]
+           {:datos-encabezado (comp/get-query Encabezado)} 
+           {:datos-profesionales (comp/get-query Encabezado)}] 
    :ident (fn [_] [:component/id ::FormularioCarga])
    :route-segment ["carga" :paciente-id]
    :initial-state (fn [_] 
                     {:ui/current-time (comp/get-initial-state HoraActual)
                      :paciente-seleccionado {}
-                     :patologias []
-                     :intervenciones []})}
-  #_(print "Props: " props)
+                     :datos-encabezado (comp/get-initial-state Encabezado)
+                     :datos-profesionales (comp/get-initial-state Encabezado)})} 
+  #_(print props) 
   (section :.size-full.m-2.p-4
            (nav :.justify-items-center
                 (ul :.flex.flew-row.p-3.gap-4
@@ -193,13 +344,11 @@
                     (li (div :.p-2.border-solid.border-2.border-cyan-950.hover:text-white.box-border (a {:href "#pie"} "Pie")))
                     (li (div :.p-2.border-solid.border-2.border-cyan-950.hover:text-white.box-border (a {:href "#observaciones"} "Observaciones")))
                     (li (div :.p-2.border-solid.border-2.border-cyan-950.hover:text-white.box-border (a {:onClick (fn [_]) #_(dr/change-route! this ["lista_pacientes"])} "Selección de paciente"))))) 
-           (print current-time)
            (ui-cabecera current-time) 
            (ui-datos-paciente paciente-seleccionado)
            (div :#cuerpo.size-full
-                (form
-                 (ui-encabezado {:todas-las-patologias patologias
-                                 :intervenciones intervenciones})
+                (form 
+                 (ui-encabezado (merge datos-profesionales (first datos-encabezado) (second datos-encabezado) paciente-seleccionado))
                  (ui-grilla)
                  (ui-medicamentos)
                  (ui-pie)

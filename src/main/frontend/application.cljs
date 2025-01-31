@@ -7,7 +7,7 @@
 
 (defonce APP (-> (app/fulcro-app {:remotes {:remote (http/fulcro-http-remote {})}
                                   :remote-error? (fn [{:keys [body] :as result}]
-                                                   (js/console.log "Resultado red: " result)
+                                                   #_(js/console.log "Resultado red: " result)
                                                    (if (empty? body)
                                                      true
                                                      (app/default-remote-error? result)))}) 

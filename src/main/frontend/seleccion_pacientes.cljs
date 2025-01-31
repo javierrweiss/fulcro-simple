@@ -1,25 +1,14 @@
 (ns main.frontend.seleccion-pacientes
   (:require [com.fulcrologic.fulcro.components :as comp :refer [defsc]]
             [com.fulcrologic.fulcro.data-fetch :as df]
-            [com.fulcrologic.fulcro.routing.dynamic-routing :as dr :refer [defrouter]] 
+            [com.fulcrologic.fulcro.routing.dynamic-routing :as dr] 
             [main.frontend.formulariocarga :as formulariocarga]
             [main.modelo.paciente :as paciente]
             [main.frontend.routing :refer [route-to]]
-            [com.fulcrologic.fulcro.dom :as dom :refer [form
-                                                        button
+            [com.fulcrologic.fulcro.dom :as dom :refer [button
                                                         div
-                                                        h1 h2 h3 h4 h5
-                                                        nav
-                                                        main
-                                                        section
-                                                        article
-                                                        header
-                                                        p
-                                                        input
-                                                        img
-                                                        ul ol li
-                                                        label
-                                                        span
+                                                        h2 
+                                                        p 
                                                         table tbody tr th td]]
             [clojure.string :as string]))
 
@@ -32,8 +21,8 @@
 (defn gatillar-transicion-formulario-carga
   [comp-ref patient-map patient-id]
   (comp/transact! comp-ref [(paciente/selecciona-paciente patient-map)] {:parallel? true})
-  (df/load! comp-ref :todas-las-patologias nil {:target [:component/id ::formulariocarga/FormularioCarga :patologias]})
-  (df/load! comp-ref :intervenciones nil {:target [:component/id ::formulariocarga/FormularioCarga :intervenciones]})
+  (df/load! comp-ref :patologias-e-intervenciones nil {:target [:component/id ::formulariocarga/FormularioCarga :datos-encabezado]})
+  (df/load! comp-ref :todos-los-profesionales nil {:target [:component/id ::formulariocarga/FormularioCarga :datos-profesionales]})
   (comp/transact! comp-ref [(route-to {:path (dr/path-to formulariocarga/FormularioCarga patient-id)})]))
 
 (defsc PacienteAmbulatorio [this {:keys [tbc_guardia/id 

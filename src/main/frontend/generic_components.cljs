@@ -44,10 +44,16 @@
   {:use-hooks? true}
   (let [name (-> etiqueta (string/replace #"(?i)\W+" "_") string/lower-case)
         props (-> input-props (assoc :name etiqueta :id name :key (random-uuid)) (dissoc :etiqueta :opciones))]
-    (div :.flex.flew-row.flex-wrap.gap-2.p-2.m-2 
-         (label :.font-bold {:htmlFor name} etiqueta)
-         (select props
-                 (map #(ui-opcion {:real-value (llave-valor-real %)
-                                   :show-value (llave-valor-mostrado %)}) opciones)))))
+    (when (seq opciones)
+      (div :.flex.flew-row.flex-wrap.gap-2.p-2.m-2
+           (label :.font-bold {:htmlFor name} etiqueta)
+           (select props
+                   (map #(ui-opcion {:real-value (llave-valor-real %)
+                                     :show-value (llave-valor-mostrado %)}) opciones))))))
 
 (def ui-renglon-seleccion (comp/factory RenglonSeleccion))
+
+(comment  
+
+(seq [{} {} {}])
+)

@@ -14,7 +14,7 @@
 
 7. ~~La hora del membrete debería actualizarse en tiempo real.~~
 
-8. Convertir todos los archivos de modelo a cljc
+8. ~~Convertir todos los archivos de modelo a cljc~~
 
 9. Crear grilla
 
@@ -22,7 +22,7 @@
 
 11. ~~Redirigir /lista_pacientes a index.html para evitar 404 al recargar~~
 
-12. Cuando hay un timeout para cargar recursos (e.g. al armar la lista), debe aparecer el mensaje adecuado en la UI
+12. ~~Cuando hay un timeout para cargar recursos (e.g. al armar la lista), debe aparecer el mensaje adecuado en la UI~~
 [(com.fulcrologic.fulcro.ui-state-machines/trigger-state-machine-event
   {:com.fulcrologic.fulcro.ui-state-machines/asm-id
    :main.frontend.root/CargaRouter,
@@ -30,7 +30,10 @@
    :com.fulcrologic.fulcro.ui-state-machines/event-data {}})]
 12.1 El problema es que el backend está enviando el timeout como una respuesta 200
   - Debería tener en el request la llave del error, de lo contrario, Fulcro lo purga
-12.2 Estamos teniendo el siguiente error de Pathom que no nos permite utilizar el EQL en Fulcro Inspect => "Pathom can't find a path for the following elements in the query: [:com.wsscode.pathom.connect/indexes]",
+
+13. Estamos teniendo el siguiente error de Pathom que no nos permite utilizar el EQL en Fulcro Inspect => "Pathom can't find a path for the following elements in the query: [:com.wsscode.pathom.connect/indexes]",
+
+14. No quiero que la hora cause una recarga del componente padre.
 
 
 

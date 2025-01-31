@@ -28,6 +28,19 @@
                                                 (throw (ex-info "Hubo un problema al obtener las intervenciones" {:excepcion msj})))))}))
 
 #?(:clj
+   (pco/defresolver obtener-intervenciones-resumido
+     []
+     {::pco/output [{:todas-las-intervenciones [:tbc_interven/itv_codi 
+                                                :tbc_interven/itv_descripcion]}]}
+     {:intervenciones (try
+                        (with-open [c (obtener-conexion :maestros)]
+                          (c/obtener-intervenciones-corto c))
+                        (catch SQLException e (let [msj (ex-message e)]
+                                                (µ/log ::excepcion-al-obtener-intervencion :fecha (t/date-time) :excepcion msj)
+                                                (throw (ex-info "Hubo un problema al obtener las intervenciones" {:excepcion msj})))))}))
+
+
+#?(:clj
    (pco/defresolver obtener-intervencion-por-id
      [_ {:tbc_interven/keys [itv_codi]}]
      {::pco/input [:tbc_interven/itv_codi]
@@ -43,12 +56,13 @@
 
 
 #?(:clj 
-   (def resolvers [obtener-intervencion-por-id obtener-intervenciones]))
+   (def resolvers [obtener-intervencion-por-id obtener-intervenciones obtener-intervenciones-resumido]))
 
 (comment 
   
   (obtener-intervencion-por-id nil {:tbc_interven/itv_codi 1014})
-  (obtener-intervenciones)
+  (obtener-intervenciones) 
+  (obtener-intervenciones-resumido)
   
-
+  
   :rcf)

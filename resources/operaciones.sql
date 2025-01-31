@@ -1,3 +1,4 @@
+--                                                                PACIENTES
 
 -- :name carga-internados-por-nombre :? :*
 SELECT adm_histclin, adm_apelnom, adm_habita, adm_cama, adm_fecing, adm_fecaltaefec, adm_histclinuni, adm_sexo, adm_obrsoc, adm_fecnac 
@@ -16,19 +17,6 @@ SELECT Guar_ApeNom, Guar_FechaIngreso, Guar_HoraIngreso, Guar_Estado, Guar_HistC
 FROM tbc_guardia   
 WHERE Guar_Especialidad = 5 AND Guar_Estado < 4
 
--- :name obtener-patologias :?:*
-SELECT pat_codi, pat_descrip
-FROM tbc_patologia
-
--- :name obtener-intervenciones :? :*
-SELECT itv_codi, itv_codiesp, itv_nivelcomplejidad, itv_estad, itv_dadores, itv_abdomen, itv_vigila, itv_tipestudio, itv_descripcion
-FROM tbc_interven
-
--- :name obtener-descr-intervencion-por-id :? :1
-SELECT itv_descripcion
-FROM tbc_interven
-WHERE itv_codi = :itv_codi
-
 -- :name carga-ambulatorios :? :*
 SELECT HistCabNroUnico, HistCabSexo, HistCabFechaNac, HistCabTipoDoc, HistCabNroDoc, HistCabFecAten, HistCabObra, HistCabPlanX, HistCabApellNom, HistCabNroBenef
 FROM tbc_hist_cab_new
@@ -38,6 +26,27 @@ SELECT HistCabSexo, HistCabFechaNac, HistCabTipoDoc, HistCabNroDoc, HistCabFecAt
 FROM tbc_hist_cab_new
 WHERE HistCabNroUnico = :histcabnrounico
 
+--                                                                       PATOLOGIAS
+
+-- :name obtener-patologias :?:*
+SELECT pat_codi, pat_descrip
+FROM tbc_patologia
+
+-- :name obtener-intervenciones :? :*
+SELECT itv_codi, itv_codiesp, itv_nivelcomplejidad, itv_estad, itv_dadores, itv_abdomen, itv_vigila, itv_tipestudio, itv_descripcion
+FROM tbc_interven
+
+-- :name obtener-intervenciones-corto :? :*
+SELECT itv_codi, itv_descripcion
+FROM tbc_interven
+
+-- :name obtener-descr-intervencion-por-id :? :1
+SELECT itv_descripcion
+FROM tbc_interven
+WHERE itv_codi = :itv_codi
+
+--                                                                    OBRAS SOCIALES
+
 -- :name obtener-obras :? :*
 SELECT obr_codigo, obr_razonsoc
 FROM tbc_obras
@@ -46,6 +55,19 @@ FROM tbc_obras
 SELECT obr_razonsoc
 FROM tbc_obras
 WHERE obr_codigo = :obr_codigo
+
+--                                                                    MEDICOS
+
+-- :name obtener-todos-los-profesionales :? :*
+SELECT medpercod, medperapeynom
+FROM tbc_medicos_personal
+
+-- :name obtener-profesional-por-id :? :1
+SELECT medperemp, medpercod, medperapeynom, medperesp, medpertipoie, medperfechaacredita, medperfechafcontrato, medperfechabaja, medpertipocontrato, medpermatricula, medperestado, medpermatricun, medpercuit
+FROM tbc_medicos_personal
+WHERE medpercod = :medpercod
+
+--                                                                    FICHA ANESTESICA
 
 -- :name obtener-ficha-anestesica :? :*
 SELECT fichaaneste_cab_id, histcli, fecha, edad, piso, pulso, riesgo_op_grado, posicion, cirujano_legajo, ayudante_legajo, auxiliar_legajo, urgencia,

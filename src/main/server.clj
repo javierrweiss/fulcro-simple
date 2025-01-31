@@ -15,6 +15,8 @@
    [main.modelo.intervencion :as intervencion]
    [main.modelo.obra-social :as obra-social]
    [main.modelo.ficha-anestesica :as ficha-anestesica]
+   [main.modelo.intervenciones-patologia :as intervenciones-patologia]
+   [main.modelo.profesionales :as profesionales]
    [com.brunobonacci.mulog :as µ]
    [tick.core :as t]))
 
@@ -34,6 +36,8 @@
                 intervencion/resolvers
                 obra-social/resolvers
                 ficha-anestesica/resolvers
+                intervenciones-patologia/resolvers
+                profesionales/resolvers
                 (pbir/equivalence-resolver :tbc_interven/itv_codi :tbc_guardia/guar_diagnostico)
                 (pbir/equivalence-resolver :tbc_guardia/guar_histclinica :tbc_hist_cab_new/histcabnrounico)
                 (pbir/equivalence-resolver :tbc_admision_scroll/adm_obrsoc :tbc_obras/obr_codigo)
@@ -97,6 +101,12 @@
  (comment
    
    (p.eql/process env [:todos-los-pacientes])
+
+   (as-> (-> (p.eql/process env [:todos-los-profesionales]) :todos-los-profesionales :lista-profesionales) m
+     (mapv #(update % :tbc_medicos_personal/medperapeynom clojure.string/trim) m)   
+     (sort-by :tbc_medicos_personal/medperapeynom m))
+
+   (p.eql/process env [:patologias-e-intervenciones])
 
    (p.eql/process env [:pacientes-internados])
    
