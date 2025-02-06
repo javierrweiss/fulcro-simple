@@ -27,7 +27,8 @@
             [com.fulcrologic.fulcro.algorithms.form-state :as fs]
             [main.frontend.generic-components :refer [ui-renglon ui-opcion ui-renglon-seleccion]]
             [clojure.string :as string]
-            [main.frontend.utils.utils :as u]))
+            [main.frontend.utils.utils :as u]
+            [main.modelo.ficha-anestesica :as ficha-anestesica]))
 
 (m/defmutation actualizar-hora [{:keys [current-time]}]
   (action [{:keys [state]}]
@@ -63,17 +64,23 @@
 
 (def ui-cabecera (comp/factory Cabecera))
 
-(defsc DatosPaciente [this {:keys [id nombre hc hcu sexo edad obra_social] :as props}]
-  {:query [:id :nombre :hc :hcu :sexo :edad :obra_social]
+(defsc DatosPaciente [this {:keys [fichaaneste_cab/fichaaneste_cab_id nombre hc hcu sexo edad obra_social] :as props}]
+  {:query [:fichaaneste_cab/fichaaneste_cab_id 
+           :nombre
+           :hc
+           :hcu
+           :sexo
+           :edad
+           :obra_social]
    :initial-state (fn [params]
-                    {:id (:id params)
-                     :nombre (:nombre params)
+                    {:nombre (:nombre params)
                      :hc (:hc params)
                      :hcu (:hcu params)
                      :sexo (:sexo params)
                      :edad (:edad params)
                      :obra_social (:obra_social params)})
-   :ident :id} 
+   :ident :fichaaneste_cab/fichaaneste_cab_id}
+  #_(print props)
   (div :#datospaciente
        (div :.grid.grid-cols-4.gap-2
         (div :.flex-1.gap-2
@@ -100,155 +107,128 @@
 
 (def ui-datos-paciente (comp/factory DatosPaciente))
 
-(defsc Patologias [this {:keys [todas-las-patologias
+(defsc Patologias [this {:keys [fichaaneste_cab/fichaaneste_cab_id
+                                todas-las-patologias
                                 intervenciones
                                 diagnostico
                                 diagnostico_operatorio
                                 oper_propuesta
-                                oper_realizada
-                                id] :as props}] 
-  {:query [:todas-las-patologias
+                                oper_realizada] :as props}]
+  {:query [:fichaaneste_cab/fichaaneste_cab_id
+           :todas-las-patologias
            :intervenciones
            :diagnostico
            :diagnostico_operatorio
            :oper_propuesta
-           :oper_realizada
-           :id
+           :oper_realizada 
            fs/form-config-join]
-   :ident :id
+   :ident  :fichaaneste_cab/fichaaneste_cab_id 
    :form-fields #{:diagnostico
                   :diagnostico_operatorio
                   :oper_propuesta
-                  :oper_realizada}} 
-  (let [patologias (->>  todas-las-patologias 
-                        (sort-by :tbc_patologia/pat_descrip))
-        intervenciones (->> intervenciones
-                            (sort-by :tbc_interven/itv_descripcion))]
+                  :oper_realizada}}
+  #_(print props)
+  (if (and todas-las-patologias intervenciones)
     (div :#patologias
          (ui-renglon-seleccion {:etiqueta "Diagnóstico"
-                                :opciones patologias
+                                :opciones todas-las-patologias
                                 :llave-valor-real :tbc_patologia/pat_codi
                                 :llave-valor-mostrado :tbc_patologia/pat_descrip
-                                :onChange #(m/set-string! this diagnostico :event %)})
+                                :onChange #(m/set-integer! this :diagnostico :event %)
+                                :onBlur #(comp/transact! this [(fs/mark-complete! {:entity-ident [:fichaaneste_cab/fichaaneste_cab_id fichaaneste_cab_id]
+                                                                                   :field :diagnostico})])})
          (ui-renglon-seleccion {:etiqueta "Diagnóstico operatorio"
-                                :opciones patologias
+                                :opciones todas-las-patologias
                                 :llave-valor-real :tbc_patologia/pat_codi
                                 :llave-valor-mostrado :tbc_patologia/pat_descrip
-                                :onChange #(m/set-string! this diagnostico_operatorio :event %)})
+                                :onChange #(m/set-integer! this :diagnostico_operatorio :event %)
+                                :onBlur #(comp/transact! this [(fs/mark-complete! {:entity-ident [:fichaaneste_cab/fichaaneste_cab_id fichaaneste_cab_id]
+                                                                                   :field :diagnostico_operatorio})])})
          (ui-renglon-seleccion {:etiqueta "Operación propuesta"
                                 :opciones intervenciones
                                 :llave-valor-real :tbc_interven/itv_codi
                                 :llave-valor-mostrado :tbc_interven/itv_descripcion
-                                :onChange #(m/set-string! this oper_propuesta :event %)})
+                                :onChange #(m/set-integer! this :oper_propuesta :event %)
+                                :onBlur #(comp/transact! this [(fs/mark-complete! {:entity-ident [:fichaaneste_cab/fichaaneste_cab_id fichaaneste_cab_id]
+                                                                                   :field :oper_propuesta})])})
          (ui-renglon-seleccion {:etiqueta "Operación realizada"
                                 :opciones intervenciones
                                 :llave-valor-real :tbc_interven/itv_codi
                                 :llave-valor-mostrado :tbc_interven/itv_descripcion
-                                :onChange #(m/set-string! this oper_realizada :event %)}))))
+                                :onChange #(m/set-integer! this :oper_realizada :event %)
+                                :onBlur #(comp/transact! this [(fs/mark-complete! {:entity-ident [:fichaaneste_cab/fichaaneste_cab_id fichaaneste_cab_id]
+                                                                                   :field :oper_realizada})])}))
+    (div :#patologias (h2 "Cargando..."))))
 
 (def ui-patologias (comp/factory Patologias {:keyfn random-uuid}))
 
-(defsc PersonalMedico [this {:keys [profesionales
+(defsc PersonalMedico [this {:keys [fichaaneste_cab/fichaaneste_cab_id
+                                    profesionales
                                     cirujano_legajo
                                     ayudante_legajo
                                     auxiliar_legajo
-                                    anestesiologo_lega
-                                    id]}]
-  {:query [:profesionales
+                                    anestesiologo_lega] :as props}]
+  {:query [:fichaaneste_cab/fichaaneste_cab_id
+           :profesionales
            :cirujano_legajo
            :ayudante_legajo
            :auxiliar_legajo
-           :anestesiologo_lega
-           :id
+           :anestesiologo_lega 
            fs/form-config-join]
-   :ident :id
+   :ident  :fichaaneste_cab/fichaaneste_cab_id 
    :form-fields #{:cirujano_legajo
                   :ayudante_legajo
                   :auxiliar_legajo
                   :anestesiologo_lega}}
-  (print profesionales)
-  (let [profesionales (->> profesionales 
-                           (sort-by :tbc_medicos_personal/medperapeynom))] 
+  (if profesionales
     (div :#personal-medico
-               (ui-renglon-seleccion {:etiqueta "Cirujano"
-                                      :opciones profesionales
-                                      :llave-valor-real :tbc_medicos_personal/medpercod
-                                      :llave-valor-mostrado :tbc_medicos_personal/medperapeynom
-                                      :onChange #(m/set-integer! this cirujano_legajo :event %)})
-               (ui-renglon-seleccion {:etiqueta "Anestesiólogo"
-                                      :opciones profesionales
-                                      :llave-valor-real :tbc_medicos_personal/medpercod
-                                      :llave-valor-mostrado :tbc_medicos_personal/medperapeynom
-                                      :onChange #(m/set-integer! this anestesiologo_lega :event %)})
-               (ui-renglon-seleccion {:etiqueta "Ayudante"
-                                      :opciones profesionales
-                                      :llave-valor-real :tbc_medicos_personal/medpercod
-                                      :llave-valor-mostrado :tbc_medicos_personal/medperapeynom
-                                      :onChange #(m/set-integer! this ayudante_legajo :event %)})
-               (ui-renglon-seleccion {:etiqueta "Auxiliar"
-                                      :opciones profesionales
-                                      :llave-valor-real :tbc_medicos_personal/medpercod
-                                      :llave-valor-mostrado :tbc_medicos_personal/medperapeynom
-                                      :onChange #(m/set-integer! this auxiliar_legajo :event %)}))))
+         (ui-renglon-seleccion {:etiqueta "Cirujano"
+                                :opciones profesionales
+                                :llave-valor-real :tbc_medicos_personal/medpercod
+                                :llave-valor-mostrado :tbc_medicos_personal/medperapeynom
+                                :onChange #(m/set-integer! this :cirujano_legajo :event %)
+                                :onBlur #(comp/transact! this [(fs/mark-complete! {:entity-ident [:fichaaneste_cab/fichaaneste_cab_id fichaaneste_cab_id]
+                                                                                   :field :cirujano_legajo})])})
+         (ui-renglon-seleccion {:etiqueta "Anestesiólogo"
+                                :opciones profesionales
+                                :llave-valor-real :tbc_medicos_personal/medpercod
+                                :llave-valor-mostrado :tbc_medicos_personal/medperapeynom
+                                :onChange #(m/set-integer! this :anestesiologo_lega :event %)
+                                :onBlur #(comp/transact! this [(fs/mark-complete! {:entity-ident [:fichaaneste_cab/fichaaneste_cab_id fichaaneste_cab_id]
+                                                                                   :field :anestesiologo_lega})])})
+         (ui-renglon-seleccion {:etiqueta "Ayudante"
+                                :opciones profesionales
+                                :llave-valor-real :tbc_medicos_personal/medpercod
+                                :llave-valor-mostrado :tbc_medicos_personal/medperapeynom
+                                :onChange #(m/set-integer! this :ayudante_legajo :event %)
+                                :onBlur #(comp/transact! this [(fs/mark-complete! {:entity-ident [:fichaaneste_cab/fichaaneste_cab_id fichaaneste_cab_id]
+                                                                                   :field :ayudante_legajo})])})
+         (ui-renglon-seleccion {:etiqueta "Auxiliar"
+                                :opciones profesionales
+                                :llave-valor-real :tbc_medicos_personal/medpercod
+                                :llave-valor-mostrado :tbc_medicos_personal/medperapeynom
+                                :onChange #(m/set-integer! this :auxiliar_legajo :event %)
+                                :onBlur #(comp/transact! this [(fs/mark-complete! {:entity-ident [:fichaaneste_cab/fichaaneste_cab_id fichaaneste_cab_id]
+                                                                                   :field :auxiliar_legajo})])}))
+    (div :#personal-medico (h2 "Cargando..."))))
 
 (def ui-personal-medico (comp/factory PersonalMedico {:keyfn random-uuid}))
-
-#_'[tbc_interven/itv_codi
- tbc_interven/itv_descripcion
- ui/diagnostico
- ui/diagnostico-operatorio
- ui/operacion-propuesta
- ui/operacion-realizada
- paciente/id
- diagnostico
- diagnostico_operatorio
- oper_propuesta
- oper_realizada
- cirujano_legajo
- ayudante_legajo
- auxiliar_legajo
- anestesiologo_lega
- resp_frec_x_min
- riesgo_op_grado
- resp_tipo
- t_art_habitual_max
- t_art_habitual_min
- t_art_actual_max
- t_art_actual_min
- talla
- peso
- piso
- habitacion
- cama
- pulso
- complic_preoperatoria
- anest_gral
- anest_conductiva
- anest_local
- anest_nla
- urgencia
- premedicacion
- droga_dosis]
-
-#_'[:tbc_patologia/pat_codi
-    :tbc_patologia/pat_descrip
-    :tbc_interven/itv_codi
-    :tbc_interven/itv_descripcion
-    :ui/diagnostico
-    :ui/diagnostico-operatorio
-    :ui/operacion-propuesta
-    :ui/operacion-realizada]
 
 (defsc Encabezado [this {:keys [todas-las-patologias
                                 intervenciones
                                 lista-profesionales
-                                id] :as props}]
-  {:query  [:todas-las-patologias
-            :intervenciones
-            :id
-            :lista-profesionales
-            fs/form-config-join]
-   :ident :id
+                                cabecera
+                                fichaaneste_cab/fichaaneste_cab_id] :as props}]
+  {:query  [:fichaaneste_cab/fichaaneste_cab_id
+            :todas-las-patologias
+            :intervenciones 
+            {:lista-profesionales (comp/get-query PersonalMedico)}
+            {:cabecera (comp/get-query PersonalMedico)}
+            {:intervenciones (comp/get-query Patologias)}
+            {:todas-las-patologias (comp/get-query Patologias)}
+            {:cabecera (comp/get-query Patologias)}
+            #_fs/form-config-join] 
+   :ident :fichaaneste_cab/fichaaneste_cab_id 
    #_#_:form-fields #{:diagnostico
                       :diagnostico_operatorio
                       :oper_propuesta
@@ -277,21 +257,22 @@
                       :anest_nla
                       :urgencia
                       :premedicacion
-                      :droga_dosis}
-   :initial-state {}}
+                      :droga_dosis}}
+  #_(print props) 
   (div :#encabezado.p-3.grid.grid-cols-2.gap-2
-       (ui-patologias {:todas-las-patologias todas-las-patologias
-                       :intervenciones intervenciones
-                       :id id})
-       (ui-personal-medico {:profesionales lista-profesionales
-                            :id id})))
+       (ui-patologias (merge cabecera {:todas-las-patologias todas-las-patologias
+                                       :intervenciones intervenciones
+                                       :fichaaneste_cab/fichaaneste_cab_id fichaaneste_cab_id}))
+       (ui-personal-medico (merge cabecera {:profesionales lista-profesionales
+                                            :fichaaneste_cab/fichaaneste_cab_id fichaaneste_cab_id}))))
 
 (def ui-encabezado (comp/factory Encabezado))
 
-(defsc Grilla [this {:keys [id]}]
-  {:query [:id fs/form-config-join]
-   :ident :id
-   :form-fields #{}}
+(defsc Grilla [this {:keys [paciente-seleccionado] :as props}]
+  {:query [:fichaaneste_cab/fichaaneste_cab_id :paciente-seleccionado fs/form-config-join]
+   :ident :fichaaneste_cab/fichaaneste_cab_id
+   :form-fields #{}
+   :initial-state {}}
   (div :#grilla))
 
 (def ui-grilla (comp/factory Grilla))
@@ -322,18 +303,14 @@
 
 (defsc FormularioCarga [this {:keys [ui/current-time paciente-seleccionado datos-encabezado datos-profesionales] :as props}]
   {:use-hooks? true
-   :query [:paciente-seleccionado
+   :query [:paciente-seleccionado 
            {:ui/current-time (comp/get-query HoraActual)}
-           {:datos-encabezado (comp/get-query Encabezado)} 
-           {:datos-profesionales (comp/get-query Encabezado)}] 
-   :ident (fn [_] [:component/id ::FormularioCarga])
-   :route-segment ["carga" :paciente-id]
-   :initial-state (fn [_] 
-                    {:ui/current-time (comp/get-initial-state HoraActual)
-                     :paciente-seleccionado {}
-                     :datos-encabezado (comp/get-initial-state Encabezado)
-                     :datos-profesionales (comp/get-initial-state Encabezado)})} 
-  #_(print props) 
+           {:datos-encabezado (comp/get-query Encabezado)}
+           {:datos-profesionales (comp/get-query Encabezado)}]
+   :ident  (fn [] [:component/id ::FormularioCarga])
+   :initial-state (fn [_] {:ui/current-time (comp/get-initial-state HoraActual)})
+   :route-segment ["carga" :paciente-id]}
+  (print paciente-seleccionado)
   (section :.size-full.m-2.p-4
            (nav :.justify-items-center
                 (ul :.flex.flew-row.p-3.gap-4
@@ -343,23 +320,30 @@
                     (li (div :.p-2.border-solid.border-2.border-cyan-950.hover:text-white.box-border (a {:href "#medicamentos"} "Medicamentos")))
                     (li (div :.p-2.border-solid.border-2.border-cyan-950.hover:text-white.box-border (a {:href "#pie"} "Pie")))
                     (li (div :.p-2.border-solid.border-2.border-cyan-950.hover:text-white.box-border (a {:href "#observaciones"} "Observaciones")))
-                    (li (div :.p-2.border-solid.border-2.border-cyan-950.hover:text-white.box-border (a {:onClick (fn [_]) #_(dr/change-route! this ["lista_pacientes"])} "Selección de paciente"))))) 
-           (ui-cabecera current-time) 
+                    (li (div :.p-2.border-solid.border-2.border-cyan-950.hover:text-white.box-border (a {:onClick (fn [_]) #_(dr/change-route! this ["lista_pacientes"])} "Selección de paciente")))))
+           (ui-cabecera current-time)
            (ui-datos-paciente paciente-seleccionado)
            (div :#cuerpo.size-full
-                (form 
-                 (ui-encabezado (merge datos-profesionales (first datos-encabezado) (second datos-encabezado) paciente-seleccionado))
+                (form
+                 (ui-encabezado (merge datos-profesionales (first datos-encabezado) (second datos-encabezado) {:fichaaneste_cab/fichaaneste_cab_id (:id paciente-seleccionado)}))
                  (ui-grilla)
                  (ui-medicamentos)
                  (ui-pie)
                  (ui-observaciones)
-                 (ui-nomencladores)))))
+                 (ui-nomencladores)
+                 (button :.p-2.bg-cyan-950.text-white
+                         {:onClick #(comp/transact! this [(ficha-anestesica/guardar-ficha-anestesica-cabecera {} #_(fs/dirty-fields (:cabecera paciente-seleccionado) false))])}
+                         "Guardar")))))
 
 
 (comment
-  
+
   (hooks/use-effect)
 
   (m/default-result-action!)
-  
+
+  (comp/registry-key->class ::FormularioCarga)
+ (fs/dirty-fields (comp/get-query ui-personal-medico) true)
+      (fs/dirty-fields [:formulario :cabecera] true) 
+
   :rcf)

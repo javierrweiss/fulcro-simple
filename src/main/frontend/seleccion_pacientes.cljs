@@ -4,13 +4,15 @@
             [com.fulcrologic.fulcro.routing.dynamic-routing :as dr] 
             [main.frontend.formulariocarga :as formulariocarga]
             [main.modelo.paciente :as paciente]
+            [main.modelo.ficha-anestesica :as ficha-anestesica]
             [main.frontend.routing :refer [route-to]]
             [com.fulcrologic.fulcro.dom :as dom :refer [button
                                                         div
                                                         h2 
                                                         p 
                                                         table tbody tr th td]]
-            [clojure.string :as string]))
+            [clojure.string :as string]
+            [com.fulcrologic.fulcro.algorithms.form-state :as fs]))
 
 (defn loading [current-load component-to-show] 
   (cond 
@@ -20,7 +22,7 @@
 
 (defn gatillar-transicion-formulario-carga
   [comp-ref patient-map patient-id]
-  (comp/transact! comp-ref [(paciente/selecciona-paciente patient-map)] {:parallel? true})
+  (comp/transact! comp-ref [(ficha-anestesica/inicializar-ficha-anestesica patient-map)] {:parallel? true})
   (df/load! comp-ref :patologias-e-intervenciones nil {:target [:component/id ::formulariocarga/FormularioCarga :datos-encabezado]})
   (df/load! comp-ref :todos-los-profesionales nil {:target [:component/id ::formulariocarga/FormularioCarga :datos-profesionales]})
   (comp/transact! comp-ref [(route-to {:path (dr/path-to formulariocarga/FormularioCarga patient-id)})]))
@@ -125,7 +127,6 @@
 
 (def ui-paciente-internado (comp/factory PacienteInternado {:keyfn :tbc_admision_scroll/id}))
 
-
 (defsc PacienteTable [_ {:keys [pacientes-ambulatorios pacientes-internados ui/tipo-paciente] :as props}]
   {:use-hooks? true
    :query  [{:pacientes-ambulatorios (comp/get-query PacienteAmbulatorio)}
@@ -150,12 +151,13 @@
    :query  [{:todos-los-pacientes (comp/get-query PacienteTable)}
             :ui/carga-paciente
             :ui/tipo-paciente
-            :ui/error 
+            :ui/error
             [df/marker-table :carga-paciente]]
-   :initial-state {:todos-los-pacientes {}
-                   :ui/tipo-paciente :ambulatorio
-                   :ui/error nil}
-   :ident (fn [_] [:component/id :PacienteList])
+   :initial-state (fn [_]
+                    {:todos-los-pacientes (comp/get-initial-state PacienteTable)
+                     :ui/tipo-paciente :ambulatorio
+                     :ui/error nil})
+   :ident (fn [] [:component/id ::PacienteList])
    :route-segment ["lista_pacientes"]}
   (div :.p-4.size-full
        (h2 :.text-center.text-3xl.font-black.p-2 "Selección de Paciente")
@@ -181,5 +183,5 @@
   (let [etiqueta "Diagnóstico operatorio"]
     (-> etiqueta (string/replace #"(?i)\W+" "_") string/lower-case))
   
-  
-  ) 
+  (fs/entity->pristine* {} [:id #uuid "6cfd71d7-2715-45a0-b9c6-dc1ec63eaacf"])
+  )  

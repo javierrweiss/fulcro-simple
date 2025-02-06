@@ -4,7 +4,8 @@
                       [com.brunobonacci.mulog :as µ]]
                 :cljs [])
             [tick.core :as t]
-            [com.wsscode.pathom3.connect.operation :as pco]))
+            [com.wsscode.pathom3.connect.operation :as pco]
+            [clojure.string :as string]))
 
 #?(:clj (import java.sql.SQLException))
  
@@ -34,7 +35,9 @@
                                                 :tbc_interven/itv_descripcion]}]}
      {:intervenciones (try
                         (with-open [c (obtener-conexion :maestros)]
-                          (c/obtener-intervenciones-corto c))
+                          (some->> (c/obtener-intervenciones-corto c)
+                                   (mapv #(update % :tbc_interven/itv_descripcion string/trim))
+                                   (sort-by :tbc_interven/itv_descripcion)))
                         (catch SQLException e (let [msj (ex-message e)]
                                                 (µ/log ::excepcion-al-obtener-intervencion :fecha (t/date-time) :excepcion msj)
                                                 (throw (ex-info "Hubo un problema al obtener las intervenciones" {:excepcion msj})))))}))

@@ -35,6 +35,8 @@
 
 14. No quiero que la hora cause una recarga del componente padre.
 
+15. Tengo problemas con la normalización de los datos en la base de datos
+
 
 
 Plugins:

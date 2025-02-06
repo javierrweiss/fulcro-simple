@@ -115,11 +115,6 @@
                    obtener-paciente-ambulatorio-histcab-por-hc]))
 
 #?(:cljs 
-   (defmutation selecciona-paciente [props]
-     (action [{:keys [state]}]
-             (swap! state assoc-in [:component/id :main.frontend.formulariocarga/FormularioCarga :paciente-seleccionado] props))))
-
-#?(:cljs 
    (defmutation toggle-tipo-paciente [_]
      (action [{:keys [state]}]
              (swap! state update-in [:component/id :PacienteList :ui/tipo-paciente] (fn [val] (if (= val :internado) :ambulatorio :internado))))))
