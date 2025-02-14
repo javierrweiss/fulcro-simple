@@ -83,7 +83,7 @@
                      :edad (:edad params)
                      :obra_social (:obra_social params)
                      :fecha_inicio (:fecha_inicio params)})
-   :ident :id
+   :ident [:fichaaneste_cab/fichaaneste_cab_id :id]
    :form-fields #{:fecha_inicio}}
   (print props)
   (div :#datospaciente
@@ -113,7 +113,7 @@
                  :onChange #(m/set-string! this :fecha_inicio :event %)
                  :onBlur #(comp/transact! this [(fs/mark-complete! {:field :fecha_inicio})])})))))
 
-(def ui-datos-paciente (comp/factory DatosPaciente {:keyfn :id}))
+(def ui-datos-paciente (comp/factory DatosPaciente {:keyfn :fichaaneste_cab/fichaaneste_cab_id}))
 
 (defsc Patologias [this {:keys [fichaaneste_cab/fichaaneste_cab_id
                                 todas-las-patologias

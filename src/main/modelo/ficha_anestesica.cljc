@@ -102,83 +102,83 @@
 #?(:cljs
    (defn inicializar-registro-cabecera*
      [id hc hcu edad sexo obra_social]
-     {:tempid id
-      :histcli hc
-      :fecha 0
-      :edad edad
-      :piso ""
-      :pulso 0
-      :riesgo_op_grado 0
-      :posicion ""
-      :cirujano_legajo 0
-      :ayudante_legajo 0
-      :auxiliar_legajo 0
-      :urgencia 0
-      :complic_preoperatoria ""
-      :premedicacion 0
-      :droga_dosis ""
-      :analgesia ""
-      :zona_inyeccion ""
-      :agente_anestesico ""
-      :cant_inyectada_cc ""
-      :anest_inhalatoria 0
-      :anest_endovenosa 0
-      :intubacion_traqueal 0
-      :tubo_nro 0
-      :mango 0
-      :respiracion_espontanea 0
-      :respiracion_asistida 0
-      :resp_controlada_manual 0
-      :resp_controlada_mecanica 0
-      :sistema_sin_reinhalacion 0
-      :sistema_con_rehin_parcial 0
-      :sistema_con_rehin_total 0
-      :habitacion 0
-      :resp_frec_x_min 0
-      :resp_tipo 0
-      :t_art_habitual_max 0
-      :t_art_habitual_min 0
-      :t_art_actual_max 0
-      :t_art_actual_min 0
-      :induccion ""
-      :mantenimiento ""
-      :estado 0
-      :observaciones ""
-      :fecha_inicio nil
-      :fecha_final nil
-      :anest_gral 0
-      :anest_conductiva 0
-      :anest_local 0
-      :anest_nla 0
-      :diagnostico 0
-      :diagnostico_operatorio 0
-      :dextrosa ""
-      :fisiologica ""
-      :sangre ""
-      :anestesiologo_legajo 0
-      :talla 0.0
-      :peso 0.0
-      :sexo sexo
-      :hora_inicio_grilla 0
-      :hora_inyectada 0
-      :grilla_pasomin 0
-      :grilla_horas 0
-      :obra_social obra_social
-      :histcli_unico hcu
-      :oper_propuesta 0
-      :oper_realizada 0
-      :cama ""
-      :anestesiologo_tipo 0
-      :cirprotocolo 0
-      :cirujano_tipo 0
-      :ayudante_tipo 0
-      :auxiliar_tipo 0
-      :anes_numero 0
-      :anestesiologo_lega 0
-      :tbc_anest_carga_fecha 0
-      :tbc_anest_carga_hora 0
-      :modif_legajo 0
-      :modif_fechahora nil}))
+     {:fichaaneste_cab/tempid id
+      :fichaaneste_cab/histcli hc
+      :fichaaneste_cab/fecha 0
+      :fichaaneste_cab/edad edad
+      :fichaaneste_cab/piso ""
+      :fichaaneste_cab/pulso 0
+      :fichaaneste_cab/riesgo_op_grado 0
+      :fichaaneste_cab/posicion ""
+      :fichaaneste_cab/cirujano_legajo 0
+      :fichaaneste_cab/ayudante_legajo 0
+      :fichaaneste_cab/auxiliar_legajo 0
+      :fichaaneste_cab/urgencia 0
+      :fichaaneste_cab/complic_preoperatoria ""
+      :fichaaneste_cab/premedicacion 0
+      :fichaaneste_cab/droga_dosis ""
+      :fichaaneste_cab/analgesia ""
+      :fichaaneste_cab/zona_inyeccion ""
+      :fichaaneste_cab/agente_anestesico ""
+      :fichaaneste_cab/cant_inyectada_cc ""
+      :fichaaneste_cab/anest_inhalatoria 0
+      :fichaaneste_cab/anest_endovenosa 0
+      :fichaaneste_cab/intubacion_traqueal 0
+      :fichaaneste_cab/tubo_nro 0
+      :fichaaneste_cab/mango 0
+      :fichaaneste_cab/respiracion_espontanea 0
+      :fichaaneste_cab/respiracion_asistida 0
+      :fichaaneste_cab/resp_controlada_manual 0
+      :fichaaneste_cab/resp_controlada_mecanica 0
+      :fichaaneste_cab/sistema_sin_reinhalacion 0
+      :fichaaneste_cab/sistema_con_rehin_parcial 0
+      :fichaaneste_cab/sistema_con_rehin_total 0
+      :fichaaneste_cab/habitacion 0
+      :fichaaneste_cab/resp_frec_x_min 0
+      :fichaaneste_cab/resp_tipo 0
+      :fichaaneste_cab/t_art_habitual_max 0
+      :fichaaneste_cab/t_art_habitual_min 0
+      :fichaaneste_cab/t_art_actual_max 0
+      :fichaaneste_cab/t_art_actual_min 0
+      :fichaaneste_cab/induccion ""
+      :fichaaneste_cab/mantenimiento ""
+      :fichaaneste_cab/estado 0
+      :fichaaneste_cab/observaciones ""
+      :fichaaneste_cab/fecha_inicio nil
+      :fichaaneste_cab/fecha_final nil
+      :fichaaneste_cab/anest_gral 0
+      :fichaaneste_cab/anest_conductiva 0
+      :fichaaneste_cab/anest_local 0
+      :fichaaneste_cab/anest_nla 0
+      :fichaaneste_cab/diagnostico 0
+      :fichaaneste_cab/diagnostico_operatorio 0
+      :fichaaneste_cab/dextrosa ""
+      :fichaaneste_cab/fisiologica ""
+      :fichaaneste_cab/sangre ""
+      :fichaaneste_cab/anestesiologo_legajo 0
+      :fichaaneste_cab/talla 0.0
+      :fichaaneste_cab/peso 0.0
+      :fichaaneste_cab/sexo sexo
+      :fichaaneste_cab/hora_inicio_grilla 0
+      :fichaaneste_cab/hora_inyectada 0
+      :fichaaneste_cab/grilla_pasomin 0
+      :fichaaneste_cab/grilla_horas 0
+      :fichaaneste_cab/obra_social obra_social
+      :fichaaneste_cab/histcli_unico hcu
+      :fichaaneste_cab/oper_propuesta 0
+      :fichaaneste_cab/oper_realizada 0
+      :fichaaneste_cab/cama ""
+      :fichaaneste_cab/anestesiologo_tipo 0
+      :fichaaneste_cab/cirprotocolo 0
+      :fichaaneste_cab/cirujano_tipo 0
+      :fichaaneste_cab/ayudante_tipo 0
+      :fichaaneste_cab/auxiliar_tipo 0
+      :fichaaneste_cab/anes_numero 0
+      :fichaaneste_cab/anestesiologo_lega 0
+      :fichaaneste_cab/tbc_anest_carga_fecha 0
+      :fichaaneste_cab/tbc_anest_carga_hora 0
+      :fichaaneste_cab/modif_legajo 0
+      :fichaaneste_cab/modif_fechahora nil}))
 
 #?(:cljs
    (defn inicializar-registro-detalle*
@@ -239,8 +239,8 @@
              (swap! state (fn [estado] (-> estado 
                                            (assoc-in [:component/id :main.frontend.formulariocarga/FormularioCarga :paciente-seleccionado] paciente)
                                            #_(assoc-in [:component/id :main.frontend.formulariocarga/FormularioCarga :fichaaneste_cab/fichaaneste_cab_id] id)
-                                           #_(assoc-in [:fichaaneste_cab/fichaaneste_cab_id id] (agregar-cabecera* paciente))
-                                           (fs/add-form-config* (comp/registry-key->class :main.frontend.formulariocarga/DatosPaciente) [:id id])))))))
+                                           (assoc-in [:fichaaneste_cab/fichaaneste_cab_id id] (agregar-cabecera* paciente))
+                                           (fs/add-form-config* (comp/registry-key->class :main.frontend.formulariocarga/DatosPaciente) [:fichaaneste_cab/fichaaneste_cab_id id])))))))
 #?(:cljs
    (defmutation agregar-detalle-ficha-anestesica
      [{:keys [fichaaneste_cab_id]}]
@@ -275,7 +275,7 @@
 
 #?(:clj
    (pco/defmutation guardar-ficha-anestesica-cabecera
-     [{:keys [tempid histcli fecha edad piso pulso riesgo_op_grado posicion cirujano_legajo ayudante_legajo auxiliar_legajo urgencia
+     [{:fichaaneste_cab/keys [tempid histcli fecha edad piso pulso riesgo_op_grado posicion cirujano_legajo ayudante_legajo auxiliar_legajo urgencia
               complic_preoperatoria premedicacion droga_dosis analgesia zona_inyeccion agente_anestesico cant_inyectada_cc anest_inhalatoria anest_endovenosa
               intubacion_traqueal tubo_nro mango respiracion_espontanea respiracion_asistida resp_controlada_manual resp_controlada_mecanica sistema_sin_reinhalacion
               sistema_con_rehin_parcial sistema_con_rehin_total habitacion resp_frec_x_min resp_tipo t_art_habitual_max t_art_habitual_min t_art_actual_max
