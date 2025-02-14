@@ -228,19 +228,19 @@
 
 #?(:cljs
    (defn agregar-cabecera*
-     [estado {:keys [id obra_social hc hcu sexo edad]}]
-     (let [cabecera (inicializar-registro-cabecera* id hc hcu edad sexo obra_social)]
-       (assoc-in estado [:fichaaneste_cab/fichaaneste_cab_id id] cabecera))))
+     [{:keys [id obra_social hc hcu sexo edad]}]
+     (inicializar-registro-cabecera* id hc hcu edad sexo obra_social)))
  
 #?(:cljs
    (defmutation inicializar-ficha-anestesica
      "Paciente es un mapa con las llaves: id obra_social hc hcu sexo edad"
      [{:keys [id] :as paciente}]
      (action [{:keys [state]}]
-             (swap! state (fn [estado] (-> estado
-                                           (agregar-cabecera* paciente)
-                                           (assoc-in [:component/id :main.frontend.formulariocarga/FormularioCarga :paciente-seleccionado] paciente))))
-             (fs/add-form-config (comp/registry-key->class :main.frontend.formulariocarga/Encabezado) [:fichaaneste_cab/ficha_anestecab_id id]))))
+             (swap! state (fn [estado] (-> estado 
+                                           (assoc-in [:component/id :main.frontend.formulariocarga/FormularioCarga :paciente-seleccionado] paciente)
+                                           #_(assoc-in [:component/id :main.frontend.formulariocarga/FormularioCarga :fichaaneste_cab/fichaaneste_cab_id] id)
+                                           #_(assoc-in [:fichaaneste_cab/fichaaneste_cab_id id] (agregar-cabecera* paciente))
+                                           (fs/add-form-config* (comp/registry-key->class :main.frontend.formulariocarga/DatosPaciente) [:id id])))))))
 #?(:cljs
    (defmutation agregar-detalle-ficha-anestesica
      [{:keys [fichaaneste_cab_id]}]

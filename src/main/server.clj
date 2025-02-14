@@ -20,17 +20,20 @@
    [com.brunobonacci.mulog :as µ]
    [tick.core :as t]))
 
-(defonce stop-publisher (µ/start-publisher! {:type :multi
-                                             :publishers [{:type :simple-file :filename "/tmp/ficha-anestesica/events.log"}
-                                                          {:type :console}]}))
+(defonce server (atom {}))
+
+(defn start-publisher []
+  (µ/start-publisher! {:type :multi
+                       :publishers [{:type :simple-file :filename "/tmp/ficha-anestesica/events.log"}
+                                    {:type :console}]}))
 
 (defonce plan-cache* (atom {}))
-
+ 
 (µ/set-global-context! {:app-name "ficha-anestesica"
                         :version "0.0.1"
                         :os (System/getProperty "os.name")
                         :java-version (System/getProperty "java.version")})
- 
+
 (def resolvers [paciente/resolvers
                 patologia/resolvers
                 intervencion/resolvers
@@ -79,27 +82,27 @@
                     (fmw/wrap-transit-params)
                     (fmw/wrap-transit-response)))
 
-(defonce server (atom nil))
-
 (defn start []
-  (let [srv (http/run-server #'middleware {:port 3000
+  (let [srv (http/run-server #'middleware {:port 3500
                                            :error-logger (fn [msg ex]
                                                            (µ/log ::error-servidor :fecha (t/date-time) :mensaje msg :excepcion ex))
                                            :warn-logger (fn [msg ex]
                                                           (µ/log ::advertencia-servidor :fecha (t/date-time) :mensaje msg :excepcion ex))
-                                           #_#_:event-logger (fn [event]
+                                           :event-logger (fn [event]
                                                            (µ/log (keyword (str *ns*) event) :fecha (t/date-time)))})]
-    (reset! server srv)
+    (swap! server assoc :server srv :publisher (start-publisher))
     (µ/log ::servidor-iniciado :fecha (t/date-time))))
 
 (defn stop []
   (when @server
-    (@server :timeout 100)
-    (reset! server nil)
-    (stop-publisher)))
+    ((:server @server) :timeout 100)
+    (:publisher @server)
+    (reset! server {})))
       
  (comment
-   
+   (stop)
+   (start)
+   @server
    (p.eql/process env [:todos-los-pacientes])
 
    (as-> (-> (p.eql/process env [:todos-los-profesionales]) :todos-los-profesionales :lista-profesionales) m

@@ -64,23 +64,28 @@
 
 (def ui-cabecera (comp/factory Cabecera))
 
-(defsc DatosPaciente [this {:keys [fichaaneste_cab/fichaaneste_cab_id nombre hc hcu sexo edad obra_social] :as props}]
-  {:query [:fichaaneste_cab/fichaaneste_cab_id 
+(defsc DatosPaciente [this {:keys [id nombre hc hcu sexo edad obra_social fecha_inicio] :as props}]
+  {:query [:id 
            :nombre
            :hc
            :hcu
            :sexo
            :edad
-           :obra_social]
-   :initial-state (fn [params]
-                    {:nombre (:nombre params)
+           :obra_social
+           :fecha_inicio
+           fs/form-config-join]
+   :initial-state (fn [params] 
+                    {:id (:id params)
+                     :nombre (:nombre params)
                      :hc (:hc params)
                      :hcu (:hcu params)
                      :sexo (:sexo params)
                      :edad (:edad params)
-                     :obra_social (:obra_social params)})
-   :ident :fichaaneste_cab/fichaaneste_cab_id}
-  #_(print props)
+                     :obra_social (:obra_social params)
+                     :fecha_inicio (:fecha_inicio params)})
+   :ident :id
+   :form-fields #{:fecha_inicio}}
+  (print props)
   (div :#datospaciente
        (div :.grid.grid-cols-4.gap-2
         (div :.flex-1.gap-2
@@ -103,9 +108,12 @@
          (span (u/obtener-edad edad)))
         (div :.flex-1.gap-2
          (label :.p-1.font-bold "Fecha de inicio: ")
-         (span (js/Date))))))
+         (input {:type "datetime-local"
+                 :value (or (str fecha_inicio) "") 
+                 :onChange #(m/set-string! this :fecha_inicio :event %)
+                 :onBlur #(comp/transact! this [(fs/mark-complete! {:field :fecha_inicio})])})))))
 
-(def ui-datos-paciente (comp/factory DatosPaciente))
+(def ui-datos-paciente (comp/factory DatosPaciente {:keyfn :id}))
 
 (defsc Patologias [this {:keys [fichaaneste_cab/fichaaneste_cab_id
                                 todas-las-patologias
@@ -218,47 +226,42 @@
                                 intervenciones
                                 lista-profesionales
                                 cabecera
-                                fichaaneste_cab/fichaaneste_cab_id] :as props}]
+                                fichaaneste_cab/fichaaneste_cab_id
+                                diagnostico
+                                diagnostico_operatorio
+                                oper_propuesta
+                                oper_realizada
+                                cirujano_legajo
+                                ayudante_legajo
+                                auxiliar_legajo
+                                anestesiologo_lega] :as props}]
   {:query  [:fichaaneste_cab/fichaaneste_cab_id
+            :diagnostico
+            :diagnostico_operatorio
+            :oper_propuesta
+            :oper_realizada
+            :cirujano_legajo
+            :ayudante_legajo
+            :auxiliar_legajo
+            :anestesiologo_lega
             :todas-las-patologias
-            :intervenciones 
+            :intervenciones
             {:lista-profesionales (comp/get-query PersonalMedico)}
             {:cabecera (comp/get-query PersonalMedico)}
             {:intervenciones (comp/get-query Patologias)}
             {:todas-las-patologias (comp/get-query Patologias)}
             {:cabecera (comp/get-query Patologias)}
-            #_fs/form-config-join] 
-   :ident :fichaaneste_cab/fichaaneste_cab_id 
-   #_#_:form-fields #{:diagnostico
-                      :diagnostico_operatorio
-                      :oper_propuesta
-                      :oper_realizada
-                      :cirujano_legajo
-                      :ayudante_legajo
-                      :auxiliar_legajo
-                      :anestesiologo_lega
-                      :resp_frec_x_min
-                      :riesgo_op_grado
-                      :resp_tipo
-                      :t_art_habitual_max
-                      :t_art_habitual_min
-                      :t_art_actual_max
-                      :t_art_actual_min
-                      :talla
-                      :peso
-                      :piso
-                      :habitacion
-                      :cama
-                      :pulso
-                      :complic_preoperatoria
-                      :anest_gral
-                      :anest_conductiva
-                      :anest_local
-                      :anest_nla
-                      :urgencia
-                      :premedicacion
-                      :droga_dosis}}
-  #_(print props) 
+            fs/form-config-join]
+   :ident :fichaaneste_cab/fichaaneste_cab_id
+   :form-fields #{:diagnostico
+                  :diagnostico_operatorio
+                  :oper_propuesta
+                  :oper_realizada
+                  :cirujano_legajo
+                  :ayudante_legajo
+                  :auxiliar_legajo
+                  :anestesiologo_lega}}
+  #_(print props)
   (div :#encabezado.p-3.grid.grid-cols-2.gap-2
        (ui-patologias (merge cabecera {:todas-las-patologias todas-las-patologias
                                        :intervenciones intervenciones
@@ -268,14 +271,14 @@
 
 (def ui-encabezado (comp/factory Encabezado))
 
-(defsc Grilla [this {:keys [paciente-seleccionado] :as props}]
+#_(defsc Grilla [this {:keys [paciente-seleccionado] :as props}]
   {:query [:fichaaneste_cab/fichaaneste_cab_id :paciente-seleccionado fs/form-config-join]
    :ident :fichaaneste_cab/fichaaneste_cab_id
    :form-fields #{}
    :initial-state {}}
   (div :#grilla))
 
-(def ui-grilla (comp/factory Grilla))
+#_(def ui-grilla (comp/factory Grilla))
 
 (defsc Medicamentos [this {}]
   {}
@@ -306,11 +309,12 @@
    :query [:paciente-seleccionado 
            {:ui/current-time (comp/get-query HoraActual)}
            {:datos-encabezado (comp/get-query Encabezado)}
-           {:datos-profesionales (comp/get-query Encabezado)}]
+           {:datos-profesionales (comp/get-query Encabezado)}
+           fs/form-config-join]
    :ident  (fn [] [:component/id ::FormularioCarga])
    :initial-state (fn [_] {:ui/current-time (comp/get-initial-state HoraActual)})
    :route-segment ["carga" :paciente-id]}
-  (print paciente-seleccionado)
+  #_(print paciente-seleccionado)
   (section :.size-full.m-2.p-4
            (nav :.justify-items-center
                 (ul :.flex.flew-row.p-3.gap-4
@@ -325,8 +329,8 @@
            (ui-datos-paciente paciente-seleccionado)
            (div :#cuerpo.size-full
                 (form
-                 (ui-encabezado (merge datos-profesionales (first datos-encabezado) (second datos-encabezado) {:fichaaneste_cab/fichaaneste_cab_id (:id paciente-seleccionado)}))
-                 (ui-grilla)
+                 #_(ui-encabezado (merge datos-profesionales (first datos-encabezado) (second datos-encabezado) {:fichaaneste_cab/fichaaneste_cab_id (:id paciente-seleccionado)}))
+                 #_(ui-grilla)
                  (ui-medicamentos)
                  (ui-pie)
                  (ui-observaciones)

@@ -7,16 +7,18 @@
 (defn start []
   (server/start))
  
-(defn restart [] 
+(defn restart []
   (when @server/server
-    (@server/server :timeout 100)
-    (reset! server/server nil))
-  (start)
-  #_(tools-ns/refresh :after 'server/start))
+    (server/stop)
+    (Thread/sleep 1000)
+    #_(server/start)
+    (tools-ns/refresh :after 'server/start)
+    :ok)
+  :ya-esta-detenido)
 
 (start)
 
 (comment 
   (restart)  
- main.backend.db.conexion/timeout 
-  )
+  
+  ) 
